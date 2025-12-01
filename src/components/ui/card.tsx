@@ -8,7 +8,7 @@ export function Card({
   className?: string;
 }) {
   return (
-    <div className={`bg-white rounded-lg shadow border ${className}`}>
+    <div className={`bg-card text-card-foreground rounded-lg shadow border border-border ${className}`}>
       {children}
     </div>
   );
@@ -21,7 +21,7 @@ export function CardHeader({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <div className={`px-6 py-4 border-b ${className}`}>{children}</div>;
+  return <div className={`px-6 py-4 border-b border-border ${className}`}>{children}</div>;
 }
 
 export function CardContent({
@@ -42,7 +42,7 @@ export function CardTitle({
   className?: string;
 }) {
   return (
-    <h3 className={`text-lg font-semibold text-gray-900 ${className}`}>
+    <h3 className={`text-lg font-semibold text-card-foreground ${className}`}>
       {children}
     </h3>
   );
@@ -55,5 +55,5 @@ export function CardDescription({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <p className={`text-sm text-gray-600 ${className}`}>{children}</p>;
+  return <p className={`text-sm text-muted-foreground ${className}`}>{children}</p>;
 }

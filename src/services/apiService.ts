@@ -57,7 +57,10 @@ class ApiService {
       Object.assign(headers, authHeaders);
     }
 
-    console.log(`📡 Fazendo requisição: ${requestOptions.method || 'GET'} ${url}`);
+    // Log apenas em desenvolvimento e para requisições importantes
+    if (import.meta.env.DEV && !url.includes('/stats')) {
+      console.log(`📡 Fazendo requisição: ${requestOptions.method || 'GET'} ${url}`);
+    }
 
     let lastError: ApiError | null = null;
 
@@ -83,12 +86,18 @@ class ApiService {
       } catch (error) {
         lastError = this.createApiError(error);
         
-        console.warn(`⚠️ Tentativa ${attempt + 1}/${retries + 1} falhou:`, lastError.message);
+        // Log apenas se não for erro de conexão ou se for a última tentativa
+        if (!lastError.isNetworkError || attempt === retries) {
+          console.warn(`⚠️ Tentativa ${attempt + 1}/${retries + 1} falhou:`, lastError.message);
+        }
 
         // Se não é a última tentativa, aguardar antes de tentar novamente
         if (attempt < retries) {
           const delay = retryDelay * Math.pow(2, attempt); // Backoff exponencial
-          console.log(`⏰ Aguardando ${delay}ms antes da próxima tentativa...`);
+          // Log apenas em desenvolvimento
+          if (import.meta.env.DEV && !lastError.isNetworkError) {
+            console.log(`⏰ Aguardando ${delay}ms antes da próxima tentativa...`);
+          }
           await this.sleep(delay);
         }
       }
@@ -96,7 +105,11 @@ class ApiService {
 
     // Todas as tentativas falharam
     this.isOffline = true;
-    console.error(`❌ Todas as tentativas falharam para ${url}`);
+    
+    // Log apenas se não for erro de conexão (para não poluir o console)
+    if (!lastError?.isNetworkError) {
+      console.error(`❌ Todas as tentativas falharam para ${url}`);
+    }
     
     throw lastError;
   }

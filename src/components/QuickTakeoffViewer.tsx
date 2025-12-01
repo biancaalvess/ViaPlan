@@ -629,7 +629,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
   return (
     <div className='h-full flex flex-col'>
       {/* PDF Controls */}
-      <div className='pdf-controls bg-white border-b border-gray-200 p-4 flex-shrink-0'>
+      <div className='pdf-controls bg-card border-b border-border p-4 flex-shrink-0'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center space-x-4'>
             <Button
@@ -665,7 +665,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
 
       {/* PDF Viewer */}
       <div
-        className='pdf-viewer-container flex-1 overflow-auto bg-gray-100 p-4'
+        className='pdf-viewer-container flex-1 overflow-auto bg-secondary/20 p-4'
         ref={containerRef}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -680,7 +680,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
         }}
       >
         <div
-          className='relative bg-white shadow-lg mx-auto'
+          className='relative bg-card shadow-lg mx-auto'
           style={{
             maxWidth: 'fit-content',
             transform: `scale(${zoomLevel}) translate(${panOffset.x}px, ${panOffset.y}px)`,

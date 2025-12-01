@@ -50,10 +50,10 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({
   onExportJSON,
 }) => {
   return (
-    <div className='bg-white border-b border-slate-200 p-4'>
+    <div className='bg-card border-b border-border p-4'>
       <div className='flex items-center justify-between'>
         <div className='flex items-center space-x-4'>
-          <h1 className='text-2xl font-bold text-slate-800'>Quick Takeoff</h1>
+          <h1 className='text-2xl font-bold text-foreground'>Quick Takeoff</h1>
 
           {/* Plant Information */}
           {currentPlant && <PlantInfo plant={currentPlant} />}

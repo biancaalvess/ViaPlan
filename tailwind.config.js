@@ -46,6 +46,27 @@ export default {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
+        // Blue Color Palette - NOGUCHI DESIGN
+        'blue-medium': {
+          DEFAULT: '#2f486d',
+          light: '#3d5a7d',
+          dark: '#253a5a',
+        },
+        'cream-light': {
+          DEFAULT: '#f3eae0',
+          light: '#faf7f3',
+          dark: '#e8ddd0',
+        },
+        'navy-dark': {
+          DEFAULT: '#223148',
+          light: '#2d3f5a',
+          dark: '#1a2538',
+        },
+        'beige-light': {
+          DEFAULT: '#d2c7b8',
+          light: '#e0d7cb',
+          dark: '#c4b8a8',
+        },
       },
     },
   },

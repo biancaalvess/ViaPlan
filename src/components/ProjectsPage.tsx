@@ -8,7 +8,7 @@ import {
   Edit,
   Trash2,
   Archive,
-  Unarchive,
+  ArchiveRestore,
   Eye,
   Calendar,
   DollarSign,
@@ -39,14 +39,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
-import { useProjects, useProjectStats, Project } from '../lib/api';
-import { toast } from '../hooks/use-toast';
+import { useProjects, useProjectStats, Project } from '@/lib/api';
+import { useToast } from '@/components/ui/use-toast';
 
 const ProjectsPage = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { projects, loading, error, deleteProject, archiveProject } =
     useProjects();
-  const { stats } = useProjectStats();
+  const { stats, loading: statsLoading } = useProjectStats();
+  
+  // Garantir que stats sempre tenha um valor
+  const safeStats = stats || {
+    total: 0,
+    active: 0,
+    completed: 0,
+    planning: 0,
+    onHold: 0,
+    totalBudget: 0,
+    totalEstimatedValue: 0,
+  };
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -186,7 +198,7 @@ const ProjectsPage = () => {
   }
 
   return (
-    <div className='p-6 space-y-6'>
+    <div className='p-6 space-y-6 bg-background'>
       {/* Header */}
       <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
         <div>
@@ -225,9 +237,9 @@ const ProjectsPage = () => {
               <Building2 className='h-4 w-4 text-gray-600' />
             </CardHeader>
             <CardContent>
-              <div className='text-2xl font-bold'>{stats.total}</div>
+              <div className='text-2xl font-bold'>{safeStats.total}</div>
               <p className='text-xs text-gray-600'>
-                {stats.active} active, {stats.archived} archived
+                {safeStats.active} active, {projects.filter(p => p.isArchived).length} archived
               </p>
             </CardContent>
           </Card>
@@ -241,7 +253,7 @@ const ProjectsPage = () => {
             </CardHeader>
             <CardContent>
               <div className='text-2xl font-bold'>
-                {formatCurrency(stats.totalBudget)}
+                {formatCurrency(safeStats.totalBudget)}
               </div>
               <p className='text-xs text-gray-600'>
                 Across all active projects
@@ -257,7 +269,11 @@ const ProjectsPage = () => {
               <CheckCircle className='h-4 w-4 text-gray-600' />
             </CardHeader>
             <CardContent>
-              <div className='text-2xl font-bold'>{stats.averageProgress}%</div>
+              <div className='text-2xl font-bold'>
+                {safeStats.total > 0 
+                  ? Math.round((safeStats.completed / safeStats.total) * 100)
+                  : 0}%
+              </div>
               <p className='text-xs text-gray-600'>Across active projects</p>
             </CardContent>
           </Card>
@@ -270,10 +286,9 @@ const ProjectsPage = () => {
               <Users className='h-4 w-4 text-gray-600' />
             </CardHeader>
             <CardContent>
-              <div className='text-2xl font-bold'>{stats.active}</div>
+              <div className='text-2xl font-bold'>{safeStats.active}</div>
               <p className='text-xs text-gray-600'>
-                {stats.byStatus.active} in progress, {stats.byStatus.planning}{' '}
-                planning
+                {safeStats.active} in progress, {safeStats.planning} planning
               </p>
             </CardContent>
           </Card>
@@ -404,7 +419,7 @@ const ProjectsPage = () => {
                     >
                       {project.isArchived ? (
                         <>
-                          <Unarchive className='h-4 w-4 mr-2' />
+                          <ArchiveRestore className='h-4 w-4 mr-2' />
                           Unarchive
                         </>
                       ) : (

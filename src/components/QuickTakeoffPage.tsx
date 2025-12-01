@@ -1,59 +1,53 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import Layout from '@/components/Layout';
-import QuickTakeoffViewer from '@/components/QuickTakeoffViewer';
-import { useToast } from '@/components/ui/use-toast';
-
-// Custom hooks
-import { usePlants } from '@/hooks/usePlants';
-import { useMeasurements } from '@/hooks/useMeasurements';
-import { useActionHistory } from '@/hooks/useActionHistory';
-import { useTools } from '@/hooks/useTools';
-import { useExport } from '@/hooks/useExport';
-
-// Components
-import { TopToolbar } from '@/components/QuickTakeoff/TopToolbar';
-import { RightSidebar } from '@/components/QuickTakeoff/RightSidebar';
-import { ConfigurationModals } from '@/components/QuickTakeoff/ConfigurationModals';
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import {
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Download,
+  MousePointer2,
+  Square,
+  Drill,
+  Droplet,
+  Gauge,
+  CheckSquare,
+  Layers,
+  FileText,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
+import { usePlants } from "@/hooks/usePlants";
+import { useMeasurements } from "@/hooks/useMeasurements";
+import { useActionHistory } from "@/hooks/useActionHistory";
+import { useTools } from "@/hooks/useTools";
+import { useExport } from "@/hooks/useExport";
+import { ConfigurationModals } from "@/components/QuickTakeoff/ConfigurationModals";
+import PDFUpload from "@/components/PDFUpload";
+import QuickTakeoffViewer from "@/components/QuickTakeoffViewer";
 
 const QuickTakeoffPage = () => {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
 
   // State management
-  const [pdfUrl, setPdfUrl] = useState<string>('');
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [scale, setScale] = useState('1" = 100\'');
+  const [scale, setScale] = useState("1\" = 100'");
   const [zoom, setZoom] = useState(1);
-  const [isToolbarMinimized, setIsToolbarMinimized] = useState(false);
 
   // Custom hooks
-  const { currentPlant, isLoadingPlant, loadPlantFromId, clearCurrentPlant } =
-    usePlants();
-
-  const {
-    measurements,
-    addMeasurement,
-    deleteMeasurement,
-    updateMeasurement,
-    clearMeasurements,
-    getMeasurementsByType,
-    getTotalLength,
-    getTotalArea,
-  } = useMeasurements();
-
-  const {
-    actionHistory,
-    canUndo,
-    saveAction,
-    undoLastAction,
-    clearHistory,
-    getHistoryCount,
-    getLastAction,
-  } = useActionHistory();
-
+  const { currentPlant, loadPlantFromId } = usePlants();
+  const { measurements, addMeasurement, deleteMeasurement } = useMeasurements();
+  const { canUndo, undoLastAction, saveAction } = useActionHistory();
   const {
     activeTool,
     trenchConfig,
@@ -72,9 +66,7 @@ const QuickTakeoffPage = () => {
     clearConduitConfig,
     clearHydroExcavationConfig,
     clearVaultConfig,
-    clearAllConfigs,
   } = useTools();
-
   const { exportToCSV, exportToJSON } = useExport();
 
   // Modal states
@@ -85,74 +77,45 @@ const QuickTakeoffPage = () => {
     useState(false);
   const [showVaultConfig, setShowVaultConfig] = useState(false);
 
-  // Check for plant parameter in URL
   useEffect(() => {
-    const plantId = searchParams.get('plant');
+    const plantId = searchParams.get("plant");
     if (plantId) {
       loadPlantFromId(plantId);
     }
   }, [searchParams, loadPlantFromId]);
 
-  // Load plant data from ID
-  const handlePlantLoad = async (plantId: string) => {
-    const plant = await loadPlantFromId(plantId);
-    if (plant && plant.file_path) {
-      const fileUrl = `${window.location.origin}${plant.file_path}`;
-      setPdfUrl(fileUrl);
-    }
-  };
-
-  // Handle file selection
   const handleFileSelect = (fileUrl: string) => {
     setPdfUrl(fileUrl);
-    clearCurrentPlant();
     toast({
-      title: 'PDF Loaded',
-      description: 'PDF file loaded successfully!',
+      title: "PDF Loaded",
+      description: "PDF file loaded successfully!",
     });
   };
 
-  // Handle tool selection with config modals
   const handleToolSelectWithConfig = (tool: string) => {
-    // Save previous state for undo
-    if (tool === 'trench' && trenchConfig) {
-      saveAction('config', { tool, previousConfig: trenchConfig });
-    } else if (tool === 'bore-shot' && boreShotConfig) {
-      saveAction('config', { tool, previousConfig: boreShotConfig });
-    } else if (tool === 'conduit' && conduitConfig) {
-      saveAction('config', { tool, previousConfig: conduitConfig });
-    } else if (tool === 'hydro-excavation' && hydroExcavationConfig) {
-      saveAction('config', { tool, previousConfig: hydroExcavationConfig });
-    } else if (tool === 'vault' && vaultConfig) {
-      saveAction('config', { tool, previousConfig: vaultConfig });
-    }
-
-    // Show config modal if tool doesn't have config
-    if (tool === 'trench' && !trenchConfig) {
+    if (tool === "trench" && !trenchConfig) {
       setShowTrenchConfig(true);
       return;
     }
-    if (tool === 'bore-shot' && !boreShotConfig) {
+    if (tool === "bore-shot" && !boreShotConfig) {
       setShowBoreShotConfig(true);
       return;
     }
-    if (tool === 'conduit' && !conduitConfig) {
+    if (tool === "conduit" && !conduitConfig) {
       setShowConduitConfig(true);
       return;
     }
-    if (tool === 'hydro-excavation' && !hydroExcavationConfig) {
+    if (tool === "hydro-excavation" && !hydroExcavationConfig) {
       setShowHydroExcavationConfig(true);
       return;
     }
-    if (tool === 'vault' && !vaultConfig) {
+    if (tool === "vault" && !vaultConfig) {
       setShowVaultConfig(true);
       return;
     }
-
     handleToolSelect(tool);
   };
 
-  // Handle config confirmations
   const handleTrenchConfigConfirm = (config: any) => {
     setTrenchConfiguration(config);
     setShowTrenchConfig(false);
@@ -178,90 +141,19 @@ const QuickTakeoffPage = () => {
     setShowVaultConfig(false);
   };
 
-  // Add measurement with undo support
   const handleAddMeasurement = (measurement: any) => {
-    saveAction('measurement', { action: 'add', measurement });
+    saveAction("measurement", { action: "add", measurement });
     addMeasurement(measurement);
   };
 
-  // Delete measurement with undo support
   const handleDeleteMeasurement = (id: string) => {
-    const measurementToDelete = measurements.find(m => m.id === id);
-    if (measurementToDelete) {
-      saveAction('measurement', {
-        action: 'delete',
-        measurement: measurementToDelete,
-      });
-    }
     deleteMeasurement(id);
   };
 
-  // Handle page change
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
-    }
-  };
-
-  // Handle zoom change with undo support
-  const handleZoomChange = (newZoom: number) => {
-    saveAction('zoom', { previousZoom: zoom });
-    setZoom(Math.max(0.5, Math.min(3, newZoom)));
-  };
-
-  // Handle scale change with undo support
-  const handleScaleChange = (newScale: string) => {
-    saveAction('scale', { previousScale: scale });
-    setScale(newScale);
-  };
-
-  // Handle undo with specific logic
   const handleUndo = () => {
-    const lastAction = undoLastAction();
-    if (!lastAction) return;
-
-    switch (lastAction.type) {
-      case 'measurement':
-        if (lastAction.data.action === 'add') {
-          // Remove the last added measurement
-          const lastMeasurement = measurements[measurements.length - 1];
-          if (lastMeasurement) {
-            deleteMeasurement(lastMeasurement.id);
-          }
-        } else if (lastAction.data.action === 'delete') {
-          // Restore the deleted measurement
-          addMeasurement(lastAction.data.measurement);
-        }
-        break;
-
-      case 'config':
-        // Restore previous configuration
-        if (lastAction.data.tool === 'trench') {
-          setTrenchConfiguration(lastAction.data.previousConfig);
-        } else if (lastAction.data.tool === 'bore-shot') {
-          setBoreShotConfiguration(lastAction.data.previousConfig);
-        } else if (lastAction.data.tool === 'conduit') {
-          setConduitConfiguration(lastAction.data.previousConfig);
-        } else if (lastAction.data.tool === 'hydro-excavation') {
-          setHydroExcavationConfiguration(lastAction.data.previousConfig);
-        } else if (lastAction.data.tool === 'vault') {
-          setVaultConfiguration(lastAction.data.previousConfig);
-        }
-        break;
-
-      case 'scale':
-        // Restore previous scale
-        setScale(lastAction.data.previousScale);
-        break;
-
-      case 'zoom':
-        // Restore previous zoom
-        setZoom(lastAction.data.previousZoom);
-        break;
-    }
+    undoLastAction();
   };
 
-  // Handle export
   const handleExportCSV = () => {
     exportToCSV(measurements, currentPage);
   };
@@ -270,32 +162,175 @@ const QuickTakeoffPage = () => {
     exportToJSON(measurements, scale);
   };
 
-  return (
-    <Layout>
-      <div className='h-screen flex flex-col bg-slate-50'>
-        {/* Top Toolbar */}
-        <TopToolbar
-          currentPlant={currentPlant}
-          scale={scale}
-          zoom={zoom}
-          canUndo={canUndo}
-          onFileSelect={handleFileSelect}
-          onScaleChange={handleScaleChange}
-          onZoomChange={handleZoomChange}
-          onUndo={handleUndo}
-          onExportCSV={handleExportCSV}
-          onExportJSON={handleExportJSON}
-        />
+  const tools = [
+    {
+      id: "select",
+      name: "Select",
+      description: "Navigate and select measurements",
+      icon: MousePointer2,
+      needsConfig: false,
+    },
+    {
+      id: "trench",
+      name: "Open Cut Trench",
+      description: "Measure open trenches",
+      icon: Square,
+      needsConfig: true,
+      config: trenchConfig,
+    },
+    {
+      id: "bore-shot",
+      name: "Bore Shot",
+      description: "Measure directional boring runs",
+      icon: Drill,
+      needsConfig: true,
+      config: boreShotConfig,
+    },
+    {
+      id: "hydro-excavation",
+      name: "Hydro Excavation",
+      description: "Measure hydraulic excavation",
+      icon: Droplet,
+      needsConfig: true,
+      config: hydroExcavationConfig,
+    },
+    {
+      id: "conduit",
+      name: "Conduit",
+      description: "Measure conduit runs",
+      icon: Gauge,
+      needsConfig: true,
+      config: conduitConfig,
+    },
+    {
+      id: "vault",
+      name: "Vault/Handhole",
+      description: "Mark vaults and handholes",
+      icon: CheckSquare,
+      needsConfig: true,
+      config: vaultConfig,
+    },
+    {
+      id: "yardage",
+      name: "Yardage",
+      description: "Calculate area measurements",
+      icon: Layers,
+      needsConfig: false,
+    },
+    {
+      id: "note",
+      name: "Note",
+      description: "Add notes and annotations",
+      icon: FileText,
+      needsConfig: false,
+    },
+  ];
 
-        {/* Main Content */}
-        <div className='flex-1 flex'>
-          {/* PDF Viewer */}
-          <div className='flex-1 bg-slate-100 p-4 overflow-hidden'>
+  const activeConfigs: Array<{ name: string; onClear: () => void }> = [
+    trenchConfig && { name: "Open Cut Trench", onClear: clearTrenchConfig },
+    boreShotConfig && { name: "Bore Shot", onClear: clearBoreShotConfig },
+    conduitConfig && { name: "Conduit", onClear: clearConduitConfig },
+    hydroExcavationConfig && {
+      name: "Hydro Excavation",
+      onClear: clearHydroExcavationConfig,
+    },
+    vaultConfig && { name: "Vault/Handhole", onClear: clearVaultConfig },
+  ].filter((config): config is { name: string; onClear: () => void } =>
+    Boolean(config)
+  );
+
+  return (
+    <div className="h-screen flex flex-col bg-[#223148] text-[#f3eae0]">
+      {/* Top Header */}
+      <div className="bg-[#223148] border-b border-[#2f486d] px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <h1 className="text-xl font-semibold text-[#f3eae0]">
+            Quick Takeoff
+          </h1>
+
+          <div className="[&_button]:bg-[#2f486d] [&_button]:border-[#3d5a7d] [&_button]:text-[#f3eae0] [&_button]:hover:bg-[#3d5a7d]">
+            <PDFUpload onFileSelect={handleFileSelect} />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-[#f3eae0]/80">Scale:</span>
+            <Select value={scale} onValueChange={setScale}>
+              <SelectTrigger className="w-40 bg-[#2f486d] border-[#3d5a7d] text-[#f3eae0]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-[#2f486d] border-[#3d5a7d]">
+                <SelectItem value="1&quot; = 100'">1&quot; = 100'</SelectItem>
+                <SelectItem value="1&quot; = 50'">1&quot; = 50'</SelectItem>
+                <SelectItem value="1&quot; = 20'">1&quot; = 20'</SelectItem>
+                <SelectItem value="1&quot; = 10'">1&quot; = 10'</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setZoom(zoom - 0.1)}
+              className="bg-[#2f486d] border-[#3d5a7d] text-[#f3eae0] hover:bg-[#3d5a7d]"
+            >
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            <span className="text-sm text-[#f3eae0] px-2 min-w-[50px] text-center">
+              {Math.round(zoom * 100)}%
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setZoom(zoom + 0.1)}
+              className="bg-[#2f486d] border-[#3d5a7d] text-[#f3eae0] hover:bg-[#3d5a7d]"
+            >
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleUndo}
+              disabled={!canUndo}
+              className="bg-[#1a4a25] border-[#2a5a35] text-[#DAE2CB] hover:bg-[#2a5a35] disabled:opacity-50"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCSV}
+            className="bg-[#1a4a25] border-[#2a5a35] text-[#DAE2CB] hover:bg-[#2a5a35]"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportJSON}
+            className="bg-[#1a4a25] border-[#2a5a35] text-[#DAE2CB] hover:bg-[#2a5a35]"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export JSON
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Central Content Area */}
+        <div className="flex-1 bg-[#223148] flex items-center justify-center">
+          {pdfUrl ? (
             <QuickTakeoffViewer
               pdfUrl={pdfUrl}
               currentPage={currentPage}
               totalPages={totalPages}
-              setCurrentPage={handlePageChange}
+              setCurrentPage={setCurrentPage}
               setTotalPages={setTotalPages}
               activeTool={activeTool}
               measurements={measurements}
@@ -308,56 +343,171 @@ const QuickTakeoffPage = () => {
               hydroExcavationConfig={hydroExcavationConfig}
               vaultConfig={vaultConfig}
             />
-          </div>
-
-          {/* Right Sidebar */}
-          <RightSidebar
-            isToolbarMinimized={isToolbarMinimized}
-            activeTool={activeTool}
-            measurements={measurements}
-            trenchConfig={trenchConfig}
-            boreShotConfig={boreShotConfig}
-            conduitConfig={conduitConfig}
-            hydroExcavationConfig={hydroExcavationConfig}
-            vaultConfig={vaultConfig}
-            onToolSelect={handleToolSelectWithConfig}
-            onClearTrenchConfig={clearTrenchConfig}
-            onClearBoreShotConfig={clearBoreShotConfig}
-            onClearConduitConfig={clearConduitConfig}
-            onClearHydroExcavationConfig={clearHydroExcavationConfig}
-            onClearVaultConfig={clearVaultConfig}
-            onToggleMinimize={() => setIsToolbarMinimized(!isToolbarMinimized)}
-            onDeleteMeasurement={handleDeleteMeasurement}
-          />
+          ) : (
+            <div className="text-center">
+              <div className="mb-4 flex justify-center">
+                <div className="w-16 h-16 bg-[#2f486d] rounded-lg flex items-center justify-center">
+                  <FileText className="h-8 w-8 text-[#f3eae0]/60" />
+                </div>
+              </div>
+              <h3 className="text-lg font-medium text-[#f3eae0] mb-2">
+                No PDFs loaded
+              </h3>
+              <p className="text-sm text-[#f3eae0]/60">
+                Upload a PDF to get started
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Configuration Modals */}
-        <ConfigurationModals
-          showTrenchConfig={showTrenchConfig}
-          showBoreShotConfig={showBoreShotConfig}
-          showConduitConfig={showConduitConfig}
-          showHydroExcavationConfig={showHydroExcavationConfig}
-          showVaultConfig={showVaultConfig}
-          trenchConfig={trenchConfig}
-          boreShotConfig={boreShotConfig}
-          conduitConfig={conduitConfig}
-          hydroExcavationConfig={hydroExcavationConfig}
-          vaultConfig={vaultConfig}
-          onTrenchConfigClose={() => setShowTrenchConfig(false)}
-          onBoreShotConfigClose={() => setShowBoreShotConfig(false)}
-          onConduitConfigClose={() => setShowConduitConfig(false)}
-          onHydroExcavationConfigClose={() =>
-            setShowHydroExcavationConfig(false)
-          }
-          onVaultConfigClose={() => setShowVaultConfig(false)}
-          onTrenchConfigConfirm={handleTrenchConfigConfirm}
-          onBoreShotConfigConfirm={handleBoreShotConfigConfirm}
-          onConduitConfigConfirm={handleConduitConfigConfirm}
-          onHydroExcavationConfigConfirm={handleHydroExcavationConfigConfirm}
-          onVaultConfigConfirm={handleVaultConfigConfirm}
-        />
+        {/* Right Sidebar */}
+        <div className="w-80 bg-[#223148] border-l border-[#2f486d] flex flex-col">
+          {/* Measurement Tools */}
+          <div className="p-4 border-b border-[#2f486d]">
+            <h2 className="text-sm font-semibold text-[#f3eae0] mb-3">
+              Measurement Tools
+            </h2>
+            <p className="text-xs text-[#f3eae0]/60 mb-4">
+              Select a tool to start measuring
+            </p>
+            <div className="space-y-2">
+              {tools.map((tool) => {
+                const Icon = tool.icon;
+                const isActive = activeTool === tool.id;
+                const isConfigured = !tool.needsConfig || tool.config;
+
+                return (
+                  <button
+                    key={tool.id}
+                    onClick={() => handleToolSelectWithConfig(tool.id)}
+                    className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                      isActive
+                        ? "bg-[#2f486d] border-[#3d5a7d]"
+                        : "bg-[#1a2538] border-[#2f486d] hover:bg-[#2f486d]"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Icon className="h-5 w-5 text-[#f3eae0] mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-[#f3eae0]">
+                            {tool.name}
+                          </span>
+                          {tool.needsConfig && !isConfigured && (
+                            <Badge className="bg-[#d2c7b8]/30 text-[#d2c7b8] border-[#d2c7b8]/50 text-xs">
+                              Not configured
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-[#f3eae0]/60">
+                          {tool.description}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Active Configurations */}
+          <div className="p-4 border-b border-[#2f486d]">
+            <h2 className="text-sm font-semibold text-[#f3eae0] mb-3">
+              Active Configurations
+            </h2>
+            {activeConfigs.length === 0 ? (
+              <p className="text-xs text-[#d2c7b8]/60 italic">
+                No active configurations
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {activeConfigs.map((config, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-2 bg-[#2f486d] rounded text-sm text-[#f3eae0]"
+                  >
+                    <span>{config.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={config.onClear}
+                      className="h-6 px-2 text-xs text-[#d2c7b8] hover:text-[#f3eae0]"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Measurements */}
+          <div className="flex-1 p-4 overflow-y-auto">
+            <h2 className="text-sm font-semibold text-[#f3eae0] mb-3">
+              Measurements
+            </h2>
+            {measurements.length === 0 ? (
+              <p className="text-xs text-[#d2c7b8]/60 italic">
+                No measurements yet. Select a tool and start measuring on the
+                plan.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {measurements.map((measurement) => (
+                  <div
+                    key={measurement.id}
+                    className="p-3 bg-[#2f486d] rounded-lg border border-[#3d5a7d]"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-[#f3eae0]">
+                          {measurement.label}
+                        </p>
+                        <p className="text-xs text-[#d2c7b8]">
+                          {measurement.type}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteMeasurement(measurement.id)}
+                        className="text-[#d2c7b8] hover:text-[#f3eae0]"
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-    </Layout>
+
+      {/* Configuration Modals */}
+      <ConfigurationModals
+        showTrenchConfig={showTrenchConfig}
+        showBoreShotConfig={showBoreShotConfig}
+        showConduitConfig={showConduitConfig}
+        showHydroExcavationConfig={showHydroExcavationConfig}
+        showVaultConfig={showVaultConfig}
+        trenchConfig={trenchConfig}
+        boreShotConfig={boreShotConfig}
+        conduitConfig={conduitConfig}
+        hydroExcavationConfig={hydroExcavationConfig}
+        vaultConfig={vaultConfig}
+        onTrenchConfigClose={() => setShowTrenchConfig(false)}
+        onBoreShotConfigClose={() => setShowBoreShotConfig(false)}
+        onConduitConfigClose={() => setShowConduitConfig(false)}
+        onHydroExcavationConfigClose={() => setShowHydroExcavationConfig(false)}
+        onVaultConfigClose={() => setShowVaultConfig(false)}
+        onTrenchConfigConfirm={handleTrenchConfigConfirm}
+        onBoreShotConfigConfirm={handleBoreShotConfigConfirm}
+        onConduitConfigConfirm={handleConduitConfigConfirm}
+        onHydroExcavationConfigConfirm={handleHydroExcavationConfigConfirm}
+        onVaultConfigConfirm={handleVaultConfigConfirm}
+      />
+    </div>
   );
 };
 
