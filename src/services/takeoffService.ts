@@ -91,7 +91,7 @@ class TakeoffService {
         throw new Error(`Erro de validação: ${validation.errors.map(e => e.message).join(', ')}`);
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/takeoffs`, {
+      const response = await fetch(`${API_BASE_URL}/takeoffs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +131,7 @@ class TakeoffService {
 
   async getTakeoffById(id: string): Promise<Takeoff> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/takeoffs/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/takeoffs/${id}`, {
         headers: this.getAuthHeaders(),
         signal: AbortSignal.timeout(30000)
       });
@@ -179,7 +179,7 @@ class TakeoffService {
         }
       }
 
-      const url = `${API_BASE_URL}/api/takeoffs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const url = `${API_BASE_URL}/takeoffs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       
       const response = await fetch(url, {
         headers: this.getAuthHeaders(),
@@ -222,7 +222,7 @@ class TakeoffService {
         throw new Error(`Erro de validação: ${validation.errors.map(e => e.message).join(', ')}`);
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/takeoffs/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/takeoffs/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -262,7 +262,7 @@ class TakeoffService {
 
   async deleteTakeoff(id: string): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/takeoffs/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/takeoffs/${id}`, {
         method: 'DELETE',
         headers: this.getAuthHeaders(),
         signal: AbortSignal.timeout(30000)
@@ -382,7 +382,7 @@ class TakeoffService {
 
   async addMeasurement(takeoffId: string, measurement: Omit<TakeoffMeasurement, 'id' | 'created_at' | 'updated_at'>): Promise<TakeoffMeasurement> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/takeoffs/${takeoffId}/measurements`, {
+      const response = await fetch(`${API_BASE_URL}/takeoffs/${takeoffId}/measurements`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -494,7 +494,7 @@ class TakeoffService {
 
   async getTakeoffStats(): Promise<TakeoffStats> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/takeoffs/stats`, {
+      const response = await fetch(`${API_BASE_URL}/takeoffs/stats`, {
         headers: this.getAuthHeaders(),
         signal: AbortSignal.timeout(30000)
       });
@@ -521,7 +521,7 @@ class TakeoffService {
 
   async getTakeoffsByProject(projectId: string): Promise<Takeoff[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/takeoffs/project/${projectId}`, {
+      const response = await fetch(`${API_BASE_URL}/takeoffs/project/${projectId}`, {
         headers: this.getAuthHeaders(),
         signal: AbortSignal.timeout(30000)
       });
@@ -548,7 +548,7 @@ class TakeoffService {
 
   async getTakeoffsByStatus(status: Takeoff['status']): Promise<Takeoff[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/takeoffs/status/${status}`, {
+      const response = await fetch(`${API_BASE_URL}/takeoffs/status/${status}`, {
         headers: this.getAuthHeaders(),
         signal: AbortSignal.timeout(30000)
       });

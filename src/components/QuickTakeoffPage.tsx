@@ -86,10 +86,10 @@ const QuickTakeoffPage = () => {
 
   const handleFileSelect = (fileUrl: string) => {
     setPdfUrl(fileUrl);
-      toast({
-        title: "PDF Carregado",
-        description: "Arquivo PDF carregado com sucesso!",
-      });
+    toast({
+      title: "PDF Carregado",
+      description: "Arquivo PDF carregado com sucesso!",
+    });
   };
 
   const handleToolSelectWithConfig = (tool: string) => {
@@ -228,7 +228,10 @@ const QuickTakeoffPage = () => {
 
   const activeConfigs: Array<{ name: string; onClear: () => void }> = [
     trenchConfig && { name: "Trincheira Aberta", onClear: clearTrenchConfig },
-    boreShotConfig && { name: "Perfuração Direcional", onClear: clearBoreShotConfig },
+    boreShotConfig && {
+      name: "Perfuração Direcional",
+      onClear: clearBoreShotConfig,
+    },
     conduitConfig && { name: "Conduto", onClear: clearConduitConfig },
     hydroExcavationConfig && {
       name: "Hidroescavação",
@@ -244,9 +247,7 @@ const QuickTakeoffPage = () => {
       {/* Top Header */}
       <div className="bg-[#223148] border-b border-[#2f486d] px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <h1 className="text-xl font-semibold text-[#f3eae0]">
-            VIAPLAN
-          </h1>
+          <h1 className="text-xl font-semibold text-[#f3eae0]">VIAPLAN</h1>
 
           <div className="[&_button]:bg-[#2f486d] [&_button]:border-[#3d5a7d] [&_button]:text-[#f3eae0] [&_button]:hover:bg-[#3d5a7d]">
             <PDFUpload onFileSelect={handleFileSelect} />
@@ -448,7 +449,8 @@ const QuickTakeoffPage = () => {
             </h2>
             {measurements.length === 0 ? (
               <p className="text-xs text-[#d2c7b8]/60 italic">
-                Ainda não há medições. Selecione uma ferramenta e comece a medir no plano.
+                Ainda não há medições. Selecione uma ferramenta e comece a medir
+                no plano.
               </p>
             ) : (
               <div className="space-y-2">

@@ -171,7 +171,7 @@ export function ProjectManager() {
 
         try {
           // Carregar do servidor
-          const backendResponse = await apiService.get('/api/projects');
+          const backendResponse = await apiService.get('/projects');
           const serverProjects = Array.isArray(backendResponse)
             ? backendResponse
             : backendResponse.data || [];

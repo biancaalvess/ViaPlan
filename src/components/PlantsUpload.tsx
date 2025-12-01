@@ -174,7 +174,7 @@ const PlantsUpload: React.FC<PlantsUploadProps> = ({
   const removePlant = async (plantId: number) => {
     try {
       const response = await fetch(
-        `${API_CONFIG.baseURL}/api/plants/${plantId}`,
+        `${API_CONFIG.baseURL}/plants/${plantId}`,
         {
           method: 'DELETE',
           credentials: 'include',
