@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 
-export interface ConduitConfig {
+export interface BoreShotConfig {
   conduits: Array<{
     sizeIn: string;
     count: number;
@@ -25,14 +25,14 @@ export interface ConduitConfig {
   }>;
 }
 
-interface ConduitConfigModalProps {
+interface BoreShotConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (config: ConduitConfig) => void;
-  initialConfig?: ConduitConfig | null;
+  onConfirm: (config: BoreShotConfig) => void;
+  initialConfig?: BoreShotConfig | null;
 }
 
-const ConduitConfigModal: React.FC<ConduitConfigModalProps> = ({
+const BoreShotConfigModal: React.FC<BoreShotConfigModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
@@ -52,7 +52,7 @@ const ConduitConfigModal: React.FC<ConduitConfigModalProps> = ({
     } else {
       setConduits([{ sizeIn: '1', count: 1, material: 'PVC' }]);
     }
-  }, [initialConfig]);
+  }, [initialConfig, isOpen]);
 
   const addConduit = () => {
     setConduits([...conduits, { sizeIn: '1', count: 1, material: 'PVC' }]);
@@ -105,7 +105,7 @@ const ConduitConfigModal: React.FC<ConduitConfigModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className='max-w-md'>
         <DialogHeader>
-          <DialogTitle>Configure Conduits</DialogTitle>
+          <DialogTitle>Configure Bore Shot</DialogTitle>
         </DialogHeader>
 
         <div className='space-y-4'>
@@ -114,7 +114,7 @@ const ConduitConfigModal: React.FC<ConduitConfigModalProps> = ({
               Conduits
             </Label>
             <p className='text-xs text-gray-500 mb-3'>
-              Configure the conduits that will be installed
+              Configure the conduits for this bore shot
             </p>
           </div>
 
@@ -236,4 +236,5 @@ const ConduitConfigModal: React.FC<ConduitConfigModalProps> = ({
   );
 };
 
-export default ConduitConfigModal;
+export default BoreShotConfigModal;
+

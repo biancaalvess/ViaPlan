@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import QuickTakeoffViewer from '@/components/QuickTakeoffViewer';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 
 // Custom hooks
 import { usePlants } from '@/hooks/usePlants';

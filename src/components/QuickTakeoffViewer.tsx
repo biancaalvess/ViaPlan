@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -177,12 +177,12 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     setTotalPages(numPages);
   };
 
-  const handlePageChange = (newPage: number) => {
+  const handlePageChange = useCallback((newPage: number) => {
     console.log('Changing page from', currentPage, 'to', newPage);
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
     }
-  };
+  }, [currentPage, totalPages, setCurrentPage]);
 
   const handlePageLoadSuccess = (page: any) => {
     const { width, height } = page.getViewport({ scale: 1 });
