@@ -1,348 +1,314 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import {
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
-  Download,
-  Trash2,
-  MousePointer,
-  Square,
-  Circle,
-  Minus,
+  ZoomIn, ZoomOut, RotateCcw, MousePointer, Trash2, 
+  Move, Save
 } from 'lucide-react';
-import { Tool, Measurement, Point } from '../types/measurement';
+import { Tool, Measurement, Point } from '../types/takeoff';
+import { calculateMeasurementStats, hitTest } from '../utils/takeoffMath';
 
 interface TakeoffCanvasBaseProps {
   imageUrl: string;
   measurements: Measurement[];
   tools: Tool[];
-  onMeasurementAdd: (measurement: Measurement) => void;
-  onMeasurementUpdate: (id: string, measurement: Measurement) => void;
+  activeToolId: string | null; // ID da ferramenta ativa (ou null para Select)
+  pixelsPerUnit?: number; // Fator de escala (Calibração)
+  
+  onMeasurementAdd: (m: Measurement) => void;
+  onMeasurementUpdate: (id: string, m: Partial<Measurement>) => void;
   onMeasurementDelete: (id: string) => void;
-  onToolSelect: (tool: Tool) => void;
-  showTools?: boolean;
-  showAdvanced?: boolean;
-  onExport?: () => void;
-  className?: string;
+  onSelectMeasurement: (id: string | null) => void;
+  selectedMeasurementId?: string | null;
 }
 
 export const TakeoffCanvasBase: React.FC<TakeoffCanvasBaseProps> = ({
   imageUrl,
   measurements,
   tools,
+  activeToolId,
+  pixelsPerUnit = 1, // Default 1:1
   onMeasurementAdd,
   onMeasurementUpdate,
   onMeasurementDelete,
-  onToolSelect,
-  showTools = true,
-  showAdvanced = true,
-  onExport,
-  className = '',
+  onSelectMeasurement,
+  selectedMeasurementId
 }) => {
+  // Estado Visual
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [scale, setScale] = useState(1);
-  const [currentTool, setCurrentTool] = useState<Tool | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+
+  // Estado de Desenho/Edição
   const [isDrawing, setIsDrawing] = useState(false);
-  const [startPoint, setStartPoint] = useState<Point | null>(null);
+  const [isPanning, setIsPanning] = useState(false);
   const [currentPoints, setCurrentPoints] = useState<Point[]>([]);
+  const [dragStart, setDragStart] = useState<Point | null>(null);
 
-  const handleZoomIn = () => setScale(prev => Math.min(prev * 1.2, 5));
-  const handleZoomOut = () => setScale(prev => Math.max(prev / 1.2, 0.1));
-  const handleReset = () => setScale(1);
+  // Determinar ferramenta ativa
+  const activeTool = tools.find(t => t.id === activeToolId);
+  const isSelectMode = !activeTool || activeTool.type === 'select';
 
-  const handleMouseDown = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      if (!currentTool) return;
+  // --- Funções de Coordenadas ---
+  
+  // Converte evento do mouse para coordenadas da imagem (desconsiderando zoom/pan)
+  const getCanvasCoordinates = (e: React.MouseEvent): Point => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return { x: 0, y: 0 };
+    return {
+      x: (e.clientX - rect.left - pan.x) / zoom,
+      y: (e.clientY - rect.top - pan.y) / zoom
+    };
+  };
 
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (!rect) return;
+  // --- Handlers de Mouse ---
 
-      const x = (e.clientX - rect.left) / scale;
-      const y = (e.clientY - rect.top) / scale;
-
-      setStartPoint({ x, y });
-      setCurrentPoints([{ x, y }]);
-      setIsDrawing(true);
-    },
-    [currentTool, scale]
-  );
-
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      if (!isDrawing || !startPoint) return;
-
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (!rect) return;
-
-      const x = (e.clientX - rect.left) / scale;
-      const y = (e.clientY - rect.top) / scale;
-
-      setCurrentPoints([startPoint, { x, y }]);
-    },
-    [isDrawing, startPoint, scale]
-  );
-
-  const handleMouseUp = useCallback(() => {
-    if (!isDrawing || !currentTool || currentPoints.length < 2) {
-      setIsDrawing(false);
-      setStartPoint(null);
-      setCurrentPoints([]);
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // 1. Pan (Espaço + Clique ou Roda do Mouse)
+    if (e.button === 1 || (e.button === 0 && e.altKey)) {
+      setIsPanning(true);
+      setDragStart({ x: e.clientX, y: e.clientY });
       return;
     }
 
-    const measurement: Measurement = {
+    const coords = getCanvasCoordinates(e);
+
+    // 2. Modo Seleção
+    if (isSelectMode) {
+      const hitId = hitTest(coords, measurements, zoom);
+      if (hitId) {
+        onSelectMeasurement(hitId);
+      } else {
+        onSelectMeasurement(null);
+      }
+      return;
+    }
+
+    // 3. Modo Desenho
+    if (activeTool) {
+      if (!isDrawing) {
+        setIsDrawing(true);
+        setCurrentPoints([coords]); // Início
+      } else {
+        // Adicionar ponto ao polígono/linha atual
+        setCurrentPoints(prev => [...prev, coords]);
+      }
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    // Lógica de Pan
+    if (isPanning && dragStart) {
+      const dx = e.clientX - dragStart.x;
+      const dy = e.clientY - dragStart.y;
+      setPan(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+      setDragStart({ x: e.clientX, y: e.clientY });
+      return;
+    }
+
+    // Preview do desenho (linha elástica)
+    if (isDrawing && currentPoints.length > 0) {
+      const coords = getCanvasCoordinates(e);
+      // Redesenhar canvas com linha temporária (implementado no useEffect de render)
+      renderCanvas(coords); 
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsPanning(false);
+  };
+
+  // Finalizar desenho (Double Click ou tecla Enter)
+  const finishDrawing = () => {
+    if (!isDrawing || !activeTool || currentPoints.length < 2) {
+      // Se for ferramenta de ponto único (ex: vault), finalizar com 1 ponto
+      if (activeTool && activeTool.type === 'vault' && currentPoints.length === 1) {
+        // Pass trough
+      } else {
+        cancelDrawing();
+        return;
+      }
+    }
+
+    // Calcular estatísticas usando o utilitário corrigido
+    const stats = calculateMeasurementStats(
+      currentPoints, 
+      activeTool.type, 
+      activeTool.config, 
+      pixelsPerUnit
+    );
+
+    const newMeasurement: Measurement = {
       id: Date.now().toString(),
-      type: getMeasurementType(currentTool.type),
-      label: `${currentTool.name} ${measurements.length + 1}`,
-      value: calculateValue(currentPoints, currentTool.type),
-      unit: getUnit(currentTool.type),
+      type: 'distance', // Simplificado, ideal vir do activeTool
+      toolType: activeTool.type,
+      label: `${activeTool.name} ${measurements.length + 1}`,
       points: [...currentPoints],
-      toolType: currentTool.type,
-      config: currentTool.config,
+      color: activeTool.config?.color || '#000',
+      config: activeTool.config,
+      ...stats
     };
 
-    onMeasurementAdd(measurement);
+    onMeasurementAdd(newMeasurement);
+    cancelDrawing();
+  };
 
+  const cancelDrawing = () => {
     setIsDrawing(false);
-    setStartPoint(null);
     setCurrentPoints([]);
-  }, [
-    isDrawing,
-    currentTool,
-    currentPoints,
-    measurements.length,
-    onMeasurementAdd,
-  ]);
-
-  const getToolIcon = (toolType: string) => {
-    switch (toolType) {
-      case 'select':
-        return <MousePointer className='h-4 w-4' />;
-      case 'trench':
-        return <Square className='h-4 w-4' />;
-      case 'bore-shot':
-        return <Circle className='h-4 w-4' />;
-      case 'vault':
-        return <Square className='h-4 w-4' />;
-      case 'hydro-excavation':
-        return <Minus className='h-4 w-4' />;
-      case 'conduit':
-        return <Minus className='h-4 w-4' />;
-      default:
-        return <MousePointer className='h-4 w-4' />;
-    }
+    renderCanvas(null);
   };
 
-  const getToolColor = (toolType: string): string => {
-    switch (toolType) {
-      case 'trench':
-        return '#3B82F6';
-      case 'bore-shot':
-        return '#10B981';
-      case 'vault':
-        return '#F59E0B';
-      case 'hydro-excavation':
-        return '#8B5CF6';
-      case 'conduit':
-        return '#EF4444';
-      default:
-        return '#6B7280';
+  // --- Renderização (Canvas Puro) ---
+
+  const renderCanvas = useCallback((previewPoint: Point | null) => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+
+    // Limpar
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Aplicar Transformações Globais (Zoom/Pan)
+    ctx.save();
+    ctx.translate(pan.x, pan.y);
+    ctx.scale(zoom, zoom);
+
+    // 1. Desenhar Imagem de Fundo (Se necessário carregar via Image Object)
+    // Nota: Se a imagem for CSS background, não desenhamos aqui. 
+    // Assumindo que queremos exportar, deveríamos desenhar. 
+    // Para performance neste exemplo, mantemos transparente para ver o CSS atrás.
+
+    // 2. Desenhar Medições Existentes
+    measurements.forEach(m => {
+      const isSelected = m.id === selectedMeasurementId;
+      
+      ctx.beginPath();
+      ctx.lineWidth = isSelected ? 4 / zoom : 2 / zoom;
+      ctx.strokeStyle = m.color || '#00f';
+      
+      // Desenhar Linha
+      if (m.points.length > 0) {
+        ctx.moveTo(m.points[0].x, m.points[0].y);
+        m.points.forEach(p => ctx.lineTo(p.x, p.y));
+      }
+      
+      // Se for área/vala, preencher levemente
+      if (m.toolType === 'trench' || m.toolType === 'hydro-excavation') {
+        ctx.fillStyle = m.color + '33'; // Transparência
+        ctx.fill(); // Fecha o path automaticamente
+      }
+      
+      ctx.stroke();
+
+      // Desenhar Vértices (Se selecionado)
+      if (isSelected) {
+        ctx.fillStyle = '#fff';
+        m.points.forEach(p => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 4 / zoom, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        });
+      }
+    });
+
+    // 3. Desenhar Medição em Progresso (Draft)
+    if (currentPoints.length > 0) {
+      ctx.beginPath();
+      ctx.lineWidth = 2 / zoom;
+      ctx.strokeStyle = activeTool?.config?.color || '#f00';
+      ctx.moveTo(currentPoints[0].x, currentPoints[0].y);
+      
+      for (let i = 1; i < currentPoints.length; i++) {
+        ctx.lineTo(currentPoints[i].x, currentPoints[i].y);
+      }
+
+      // Linha elástica até o mouse
+      if (previewPoint) {
+        ctx.lineTo(previewPoint.x, previewPoint.y);
+      }
+
+      ctx.stroke();
     }
-  };
 
-  const getMeasurementType = (toolType: string): Measurement['type'] => {
-    switch (toolType) {
-      case 'trench':
-        return 'area';
-      case 'bore-shot':
-        return 'distance';
-      case 'vault':
-        return 'count';
-      case 'hydro-excavation':
-        return 'area';
-      case 'conduit':
-        return 'distance';
-      default:
-        return 'distance';
-    }
-  };
+    ctx.restore();
+  }, [measurements, currentPoints, zoom, pan, selectedMeasurementId, activeTool]);
 
-  const calculateValue = (points: Point[], toolType: string): number => {
-    if (points.length < 2) return 0;
+  // Efeito para redesenhar quando algo mudar
+  useEffect(() => {
+    renderCanvas(null);
+  }, [renderCanvas]);
 
-    const [p1, p2] = points;
-    const dx = p2.x - p1.x;
-    const dy = p2.y - p1.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    switch (toolType) {
-      case 'trench':
-        return distance * 3; // Assuming 3ft width
-      case 'bore-shot':
-        return distance;
-      case 'vault':
-        return 1; // Count
-      case 'hydro-excavation':
-        return distance * 2; // Assuming 2ft width
-      case 'conduit':
-        return distance;
-      default:
-        return distance;
-    }
-  };
-
-  const getUnit = (toolType: string): string => {
-    switch (toolType) {
-      case 'trench':
-        return 'sq ft';
-      case 'bore-shot':
-        return 'ft';
-      case 'vault':
-        return 'count';
-      case 'hydro-excavation':
-        return 'sq ft';
-      case 'conduit':
-        return 'ft';
-      default:
-        return 'ft';
-    }
+  // --- Controles de Zoom ---
+  const handleZoom = (delta: number) => {
+    setZoom(z => Math.max(0.1, Math.min(5, z + delta)));
   };
 
   return (
-    <div className={`h-full flex flex-col ${className}`}>
-      {/* Toolbar */}
-      {showTools && (
-        <div className='flex-shrink-0 bg-white border-b border-gray-200 p-4'>
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center space-x-4'>
-              <h2 className='text-lg font-semibold text-gray-900'>
-                Takeoff Tools
-              </h2>
-            </div>
-
-            <div className='flex items-center space-x-2'>
-              <Button variant='outline' size='sm' onClick={handleZoomOut}>
-                <ZoomOut className='h-4 w-4' />
-              </Button>
-              <span className='text-sm text-gray-600 px-2'>
-                {scale.toFixed(2)}x
-              </span>
-              <Button variant='outline' size='sm' onClick={handleZoomIn}>
-                <ZoomIn className='h-4 w-4' />
-              </Button>
-              <Button variant='outline' size='sm' onClick={handleReset}>
-                <RotateCcw className='h-4 w-4' />
-              </Button>
-              {onExport && (
-                <Button variant='outline' size='sm' onClick={onExport}>
-                  <Download className='h-4 w-4 mr-2' />
-                  Export
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {/* Tools */}
-          <div className='flex items-center space-x-2 mt-4'>
-            {tools.map(tool => (
-              <Button
-                key={tool.id}
-                variant={currentTool?.id === tool.id ? 'default' : 'outline'}
-                size='sm'
-                onClick={() => {
-                  setCurrentTool(tool);
-                  onToolSelect(tool);
-                }}
-                className='flex items-center space-x-2'
-              >
-                <div
-                  className={`h-4 w-4 ${currentTool?.id === tool.id ? 'text-white' : 'text-gray-600'}`}
-                >
-                  {getToolIcon(tool.type)}
-                </div>
-                <span>{tool.name}</span>
-              </Button>
-            ))}
-          </div>
+    <div className="flex flex-col h-full bg-gray-100">
+      {/* Barra de Ferramentas Interna */}
+      <div className="flex items-center justify-between p-2 bg-white border-b">
+        <div className="flex space-x-2">
+           <span className="text-sm font-semibold text-gray-600">
+             {activeTool ? `Ferramenta: ${activeTool.name}` : 'Modo: Seleção/Navegação'}
+           </span>
+           {isDrawing && (
+             <Badge variant="destructive" className="animate-pulse">
+               Desenhando... (Double-click p/ finalizar)
+             </Badge>
+           )}
         </div>
-      )}
+        <div className="flex space-x-1">
+          <Button variant="ghost" size="sm" onClick={() => handleZoom(-0.1)}><ZoomOut className="w-4 h-4"/></Button>
+          <span className="text-xs self-center px-2">{Math.round(zoom * 100)}%</span>
+          <Button variant="ghost" size="sm" onClick={() => handleZoom(0.1)}><ZoomIn className="w-4 h-4"/></Button>
+          <Button variant="ghost" size="sm" onClick={() => { setZoom(1); setPan({x:0, y:0}); }}><RotateCcw className="w-4 h-4"/></Button>
+        </div>
+      </div>
 
-      {/* Canvas Area */}
-      <div className='flex-1 relative bg-gray-50'>
-        <canvas
-          ref={canvasRef}
-          className='w-full h-full cursor-crosshair'
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
+      {/* Área do Canvas */}
+      <div 
+        ref={containerRef} 
+        className="flex-1 relative overflow-hidden cursor-crosshair"
+        onContextMenu={(e) => { e.preventDefault(); finishDrawing(); }} // Botão direito finaliza
+      >
+        {/* Imagem de Fundo (Renderizada via CSS para facilitar) */}
+        <div 
           style={{
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            transformOrigin: '0 0',
             backgroundImage: `url(${imageUrl})`,
-            backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
+            position: 'absolute',
+            top: 0, left: 0,
+            width: '2000px', // Idealmente dinâmico baseado na img
+            height: '2000px',
+            pointerEvents: 'none' // Deixa cliques passarem para o canvas
           }}
         />
 
-        {/* Current tool indicator */}
-        {currentTool && (
-          <div className='absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg'>
-            <div className='flex items-center gap-2'>
-              {getToolIcon(currentTool.type)}
-              <span className='text-sm font-medium'>{currentTool.name}</span>
-            </div>
+        <canvas
+          ref={canvasRef}
+          width={containerRef.current?.clientWidth || 800}
+          height={containerRef.current?.clientHeight || 600}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onDoubleClick={finishDrawing}
+          className="absolute top-0 left-0 z-10"
+        />
+        
+        {/* Botão Flutuante para Finalizar (UX Mobile/Desktop) */}
+        {isDrawing && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
+             <Button onClick={finishDrawing} className="shadow-lg">
+               <Save className="w-4 h-4 mr-2"/> Finalizar Medição
+             </Button>
           </div>
         )}
       </div>
-
-      {/* Measurements Panel */}
-      {showAdvanced && (
-        <div className='flex-shrink-0 bg-white border-t border-gray-200 p-4'>
-          <div className='flex items-center justify-between mb-4'>
-            <h3 className='text-lg font-semibold text-gray-900'>
-              Measurements
-            </h3>
-            <Badge variant='secondary'>{measurements.length} items</Badge>
-          </div>
-
-          <div className='space-y-2 max-h-48 overflow-y-auto'>
-            {measurements.map(measurement => (
-              <div
-                key={measurement.id}
-                className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'
-              >
-                <div className='flex-1'>
-                  <div className='font-medium text-gray-900'>
-                    {measurement.label}
-                  </div>
-                  <div className='text-sm text-gray-600'>
-                    {measurement.value.toFixed(2)} {measurement.unit}
-                  </div>
-                </div>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  onClick={() => onMeasurementDelete(measurement.id)}
-                  className='text-red-600 hover:text-red-700'
-                >
-                  <Trash2 className='h-4 w-4' />
-                </Button>
-              </div>
-            ))}
-
-            {measurements.length === 0 && (
-              <div className='text-center py-6 text-gray-500'>
-                <p className='text-sm'>No measurements yet.</p>
-                <p className='text-xs mt-1'>
-                  Select a tool and start measuring on the plan.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
