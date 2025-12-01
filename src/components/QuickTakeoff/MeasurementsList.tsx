@@ -25,7 +25,7 @@ export const MeasurementsList: React.FC<MeasurementsListProps> = ({
 
   return (
     <div className='mb-4'>
-      <h3 className='font-medium text-slate-800 mb-2'>Measurements</h3>
+      <h3 className='font-medium text-slate-800 mb-2'>Medições</h3>
 
       <div className='space-y-2'>
         {measurements.map(measurement => (
@@ -39,9 +39,9 @@ export const MeasurementsList: React.FC<MeasurementsListProps> = ({
 
         {measurements.length === 0 && (
           <div className='text-center text-slate-500 py-8'>
-            <p className='text-sm'>No measurements yet.</p>
+            <p className='text-sm'>Ainda não há medições.</p>
             <p className='text-xs mt-1'>
-              Select a tool and start measuring on the plan.
+              Selecione uma ferramenta e comece a medir no plano.
             </p>
           </div>
         )}

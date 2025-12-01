@@ -618,9 +618,9 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
         <div className='text-center'>
           <div className='text-gray-400 text-6xl mb-4'>📄</div>
           <h3 className='text-lg font-medium text-gray-900 mb-2'>
-            No PDFs loaded
+            Nenhum PDF carregado
           </h3>
-          <p className='text-gray-500'>Upload a PDF to get started</p>
+          <p className='text-gray-500'>Faça upload de um PDF para começar</p>
         </div>
       </div>
     );
@@ -717,17 +717,17 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
 
                   // Show user-friendly error message
                   toast({
-                    title: 'PDF Error',
+                    title: 'Erro no PDF',
                     description:
-                      'The PDF file appears to be corrupted or has an invalid structure. Please try uploading a different PDF file.',
+                      'O arquivo PDF parece estar corrompido ou tem uma estrutura inválida. Por favor, tente fazer upload de um arquivo PDF diferente.',
                     variant: 'destructive',
                   });
                 } else if (error.name === 'MissingPDFException') {
                   console.error('❌ PDF file not found:', error.message);
                   toast({
-                    title: 'PDF Not Found',
+                    title: 'PDF Não Encontrado',
                     description:
-                      'The PDF file could not be found. Please check the file URL and try again.',
+                      'O arquivo PDF não pôde ser encontrado. Por favor, verifique a URL do arquivo e tente novamente.',
                     variant: 'destructive',
                   });
                 } else if (error.name === 'UnexpectedResponseException') {
@@ -736,17 +736,17 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
                     error.message
                   );
                   toast({
-                    title: 'Server Error',
+                    title: 'Erro do Servidor',
                     description:
-                      'The server returned an unexpected response. Please try again later.',
+                      'O servidor retornou uma resposta inesperada. Por favor, tente novamente mais tarde.',
                     variant: 'destructive',
                   });
                 } else {
                   console.error('❌ Unknown PDF error:', error);
                   toast({
-                    title: 'PDF Loading Error',
+                    title: 'Erro ao Carregar PDF',
                     description:
-                      'An error occurred while loading the PDF. Please try again.',
+                      'Ocorreu um erro ao carregar o PDF. Por favor, tente novamente.',
                     variant: 'destructive',
                   });
                 }
@@ -761,10 +761,10 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
                   <div className='text-center'>
                     <div className='text-red-500 text-4xl mb-2'>❌</div>
                     <p className='text-red-600 font-medium'>
-                      Error loading PDF
+                      Erro ao carregar PDF
                     </p>
                     <p className='text-gray-500 text-sm mt-1'>
-                      Please check if the file is accessible and try again
+                      Por favor, verifique se o arquivo está acessível e tente novamente
                     </p>
                     <Button
                       variant='outline'
@@ -772,7 +772,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
                       className='mt-2'
                       onClick={() => window.location.reload()}
                     >
-                      Retry
+                      Tentar Novamente
                     </Button>
                   </div>
                 </div>

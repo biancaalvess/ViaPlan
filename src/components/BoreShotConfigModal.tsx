@@ -216,19 +216,19 @@ const BoreShotConfigModal: React.FC<BoreShotConfigModalProps> = ({
             className='w-full'
           >
             <Plus className='h-4 w-4 mr-2' />
-            Add Conduit
+            Adicionar Conduto
           </Button>
         </div>
 
         <div className='flex justify-end space-x-2 pt-4'>
           <Button variant='outline' onClick={onClose}>
-            Cancel
+            Cancelar
           </Button>
           <Button
             onClick={handleConfirm}
             className='bg-red-600 hover:bg-red-700'
           >
-            Confirm
+            Confirmar
           </Button>
         </div>
       </DialogContent>

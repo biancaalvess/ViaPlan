@@ -14,7 +14,7 @@ export const PlantInfo: React.FC<PlantInfoProps> = ({ plant }) => {
       <FileText className='h-5 w-5 text-blue-600' />
       <div>
         <p className='text-sm font-medium text-blue-900'>{plant.name}</p>
-        <p className='text-xs text-blue-700'>Code: {plant.code}</p>
+        <p className='text-xs text-blue-700'>Código: {plant.code}</p>
         {plant.location && (
           <p className='text-xs text-blue-600'>📍 {plant.location}</p>
         )}

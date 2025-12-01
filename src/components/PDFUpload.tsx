@@ -135,9 +135,9 @@ const PDFUpload: React.FC<PDFUploadProps> = ({
         >
           <Upload className='h-4 w-4 mr-2' />
           {isUploading
-            ? 'Loading...'
+            ? 'Carregando...'
             : isDragActive
-              ? 'Drop PDF here...'
+              ? 'Solte o PDF aqui...'
               : 'Upload'}
         </Button>
       </div>

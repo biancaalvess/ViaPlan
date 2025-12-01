@@ -53,7 +53,7 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({
     <div className='bg-card border-b border-border p-4'>
       <div className='flex items-center justify-between'>
         <div className='flex items-center space-x-4'>
-          <h1 className='text-2xl font-bold text-foreground'>Quick Takeoff</h1>
+          <h1 className='text-2xl font-bold text-foreground'>VIAPLAN</h1>
 
           {/* Plant Information */}
           {currentPlant && <PlantInfo plant={currentPlant} />}

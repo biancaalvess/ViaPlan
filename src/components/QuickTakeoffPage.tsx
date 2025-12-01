@@ -86,10 +86,10 @@ const QuickTakeoffPage = () => {
 
   const handleFileSelect = (fileUrl: string) => {
     setPdfUrl(fileUrl);
-    toast({
-      title: "PDF Loaded",
-      description: "PDF file loaded successfully!",
-    });
+      toast({
+        title: "PDF Carregado",
+        description: "Arquivo PDF carregado com sucesso!",
+      });
   };
 
   const handleToolSelectWithConfig = (tool: string) => {
@@ -165,76 +165,76 @@ const QuickTakeoffPage = () => {
   const tools = [
     {
       id: "select",
-      name: "Select",
-      description: "Navigate and select measurements",
+      name: "Selecionar",
+      description: "Navegar e selecionar medições",
       icon: MousePointer2,
       needsConfig: false,
     },
     {
       id: "trench",
-      name: "Open Cut Trench",
-      description: "Measure open trenches",
+      name: "Trincheira Aberta",
+      description: "Medir trincheiras abertas",
       icon: Square,
       needsConfig: true,
       config: trenchConfig,
     },
     {
       id: "bore-shot",
-      name: "Bore Shot",
-      description: "Measure directional boring runs",
+      name: "Perfuração Direcional",
+      description: "Medir perfurações direcionais",
       icon: Drill,
       needsConfig: true,
       config: boreShotConfig,
     },
     {
       id: "hydro-excavation",
-      name: "Hydro Excavation",
-      description: "Measure hydraulic excavation",
+      name: "Hidroescavação",
+      description: "Medir escavações hidráulicas",
       icon: Droplet,
       needsConfig: true,
       config: hydroExcavationConfig,
     },
     {
       id: "conduit",
-      name: "Conduit",
-      description: "Measure conduit runs",
+      name: "Conduto",
+      description: "Medir trajetos de condutos",
       icon: Gauge,
       needsConfig: true,
       config: conduitConfig,
     },
     {
       id: "vault",
-      name: "Vault/Handhole",
-      description: "Mark vaults and handholes",
+      name: "Câmara/Buraco de Mão",
+      description: "Marcar câmaras e buracos de mão",
       icon: CheckSquare,
       needsConfig: true,
       config: vaultConfig,
     },
     {
       id: "yardage",
-      name: "Yardage",
-      description: "Calculate area measurements",
+      name: "Área",
+      description: "Calcular medições de área",
       icon: Layers,
       needsConfig: false,
     },
     {
       id: "note",
-      name: "Note",
-      description: "Add notes and annotations",
+      name: "Nota",
+      description: "Adicionar notas e anotações",
       icon: FileText,
       needsConfig: false,
     },
   ];
 
   const activeConfigs: Array<{ name: string; onClear: () => void }> = [
-    trenchConfig && { name: "Open Cut Trench", onClear: clearTrenchConfig },
-    boreShotConfig && { name: "Bore Shot", onClear: clearBoreShotConfig },
-    conduitConfig && { name: "Conduit", onClear: clearConduitConfig },
+    trenchConfig && { name: "Trincheira Aberta", onClear: clearTrenchConfig },
+    boreShotConfig && { name: "Perfuração Direcional", onClear: clearBoreShotConfig },
+    conduitConfig && { name: "Conduto", onClear: clearConduitConfig },
     hydroExcavationConfig && {
-      name: "Hydro Excavation",
+      name: "Hidroescavação",
       onClear: clearHydroExcavationConfig,
     },
-    vaultConfig && { name: "Vault/Handhole", onClear: clearVaultConfig },
+    vaultConfig && { name: "Câmara/Buraco de Mão", onClear: clearVaultConfig },
   ].filter((config): config is { name: string; onClear: () => void } =>
     Boolean(config)
   );
@@ -245,7 +245,7 @@ const QuickTakeoffPage = () => {
       <div className="bg-[#223148] border-b border-[#2f486d] px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <h1 className="text-xl font-semibold text-[#f3eae0]">
-            Quick Takeoff
+            VIAPLAN
           </h1>
 
           <div className="[&_button]:bg-[#2f486d] [&_button]:border-[#3d5a7d] [&_button]:text-[#f3eae0] [&_button]:hover:bg-[#3d5a7d]">
@@ -253,7 +253,7 @@ const QuickTakeoffPage = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-sm text-[#f3eae0]/80">Scale:</span>
+            <span className="text-sm text-[#f3eae0]/80">Escala:</span>
             <Select value={scale} onValueChange={setScale}>
               <SelectTrigger className="w-40 bg-[#2f486d] border-[#3d5a7d] text-[#f3eae0]">
                 <SelectValue />
@@ -307,16 +307,16 @@ const QuickTakeoffPage = () => {
             className="bg-[#1a4a25] border-[#2a5a35] text-[#DAE2CB] hover:bg-[#2a5a35]"
           >
             <Download className="h-4 w-4 mr-2" />
-            Export CSV
+            Exportar CSV
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleExportJSON}
-            className="bg-[#1a4a25] border-[#2a5a35] text-[#DAE2CB] hover:bg-[#2a5a35]"
+            className="bg-[#2f486d] border-[#3d5a7d] text-[#f3eae0] hover:bg-[#3d5a7d]"
           >
             <Download className="h-4 w-4 mr-2" />
-            Export JSON
+            Exportar JSON
           </Button>
         </div>
       </div>
@@ -351,10 +351,10 @@ const QuickTakeoffPage = () => {
                 </div>
               </div>
               <h3 className="text-lg font-medium text-[#f3eae0] mb-2">
-                No PDFs loaded
+                Nenhum PDF carregado
               </h3>
               <p className="text-sm text-[#f3eae0]/60">
-                Upload a PDF to get started
+                Faça upload de um PDF para começar
               </p>
             </div>
           )}
@@ -365,10 +365,10 @@ const QuickTakeoffPage = () => {
           {/* Measurement Tools */}
           <div className="p-4 border-b border-[#2f486d]">
             <h2 className="text-sm font-semibold text-[#f3eae0] mb-3">
-              Measurement Tools
+              Ferramentas de Medição
             </h2>
             <p className="text-xs text-[#f3eae0]/60 mb-4">
-              Select a tool to start measuring
+              Selecione uma ferramenta para começar a medir
             </p>
             <div className="space-y-2">
               {tools.map((tool) => {
@@ -395,7 +395,7 @@ const QuickTakeoffPage = () => {
                           </span>
                           {tool.needsConfig && !isConfigured && (
                             <Badge className="bg-[#d2c7b8]/30 text-[#d2c7b8] border-[#d2c7b8]/50 text-xs">
-                              Not configured
+                              Não configurado
                             </Badge>
                           )}
                         </div>
@@ -413,11 +413,11 @@ const QuickTakeoffPage = () => {
           {/* Active Configurations */}
           <div className="p-4 border-b border-[#2f486d]">
             <h2 className="text-sm font-semibold text-[#f3eae0] mb-3">
-              Active Configurations
+              Configurações Ativas
             </h2>
             {activeConfigs.length === 0 ? (
               <p className="text-xs text-[#d2c7b8]/60 italic">
-                No active configurations
+                Nenhuma configuração ativa
               </p>
             ) : (
               <div className="space-y-2">
@@ -444,12 +444,11 @@ const QuickTakeoffPage = () => {
           {/* Measurements */}
           <div className="flex-1 p-4 overflow-y-auto">
             <h2 className="text-sm font-semibold text-[#f3eae0] mb-3">
-              Measurements
+              Medições
             </h2>
             {measurements.length === 0 ? (
               <p className="text-xs text-[#d2c7b8]/60 italic">
-                No measurements yet. Select a tool and start measuring on the
-                plan.
+                Ainda não há medições. Selecione uma ferramenta e comece a medir no plano.
               </p>
             ) : (
               <div className="space-y-2">
