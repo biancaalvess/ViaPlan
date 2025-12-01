@@ -15,6 +15,8 @@ export interface ToolConfig {
 }
 
 export interface Tool {
+  icon: ReactNode;
+  description: ReactNode;
   id: string;
   type: 'select' | 'trench' | 'bore-shot' | 'vault' | 'hydro-excavation' | 'conduit' | 'measure';
   name: string;

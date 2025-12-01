@@ -1,6 +1,13 @@
 import React from 'react';
-import { MeasurementCard } from '@/components/MeasurementCard';
-import { TakeoffMeasurement } from '@/hooks/useMeasurements';
+import { useTakeoffMeasurements } from '../hooks/useTakeoffMeasurements';
+import { Measurement } from './Measurement';
+
+interface TakeoffMeasurement {
+  id: string;
+  // adicione outros campos do measurement conforme necessário, por exemplo:
+  // name?: string;
+  // value?: number;
+}
 
 interface MeasurementsListProps {
   measurements: TakeoffMeasurement[];
@@ -27,9 +34,8 @@ export const MeasurementsList: React.FC<MeasurementsListProps> = ({
     <div className='mb-4'>
       <h3 className='font-medium text-slate-800 mb-2'>Measurements</h3>
 
-      <div className='space-y-2'>
         {measurements.map(measurement => (
-          <MeasurementCard
+          <Measurement
             key={measurement.id}
             measurement={measurement}
             onDelete={onDeleteMeasurement}
@@ -45,7 +51,6 @@ export const MeasurementsList: React.FC<MeasurementsListProps> = ({
             </p>
           </div>
         )}
-      </div>
     </div>
   );
 };

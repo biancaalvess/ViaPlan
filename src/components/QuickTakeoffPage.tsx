@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import QuickTakeoffViewer from './QuickTakeoffViewer';
+import Layout from '@/components/Layout';
+import QuickTakeoffViewer from '@/components/QuickTakeoffViewer';
+import { useToast } from '@/hooks/use-toast';
+
+// Custom hooks
+import { usePlants } from '@/hooks/usePlants';
+import { useMeasurements } from '@/hooks/useMeasurements';
+import { useActionHistory } from '@/hooks/useActionHistory';
+import { useTools } from '@/hooks/useTools';
+import { useExport } from '@/hooks/useExport';
 
 // Components
-import { TopToolbar } from './QuickTakeoff/TopToolbar';
-import { RightSidebar } from './QuickTakeoff/RightSidebar';
-import { ConfigurationModals } from './QuickTakeoff/ConfigurationModals';
+import { TopToolbar } from '@/components/QuickTakeoff/TopToolbar';
+import { RightSidebar } from '@/components/QuickTakeoff/RightSidebar';
+import { ConfigurationModals } from '@/components/QuickTakeoff/ConfigurationModals';
 
 const QuickTakeoffPage = () => {
   const { toast } = useToast();
