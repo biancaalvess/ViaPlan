@@ -1,0 +1,835 @@
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { ScaleCalibration } from './ScaleCalibration';
+
+// Configure PDF.js worker - usando arquivo local do worker
+// O Vite copia o worker para /public via plugin personalizado
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+
+// Log da configuração do PDF.js
+console.log('QuickTakeoffViewer - PDF.js version:', pdfjs.version);
+console.log(
+  'QuickTakeoffViewer - Worker local:',
+  pdfjs.GlobalWorkerOptions.workerSrc
+);
+
+// PDF.js options para melhor compatibilidade - será memoizado no componente
+const createPdfOptions = () => ({
+  disableOptionalContent: true, // Desabilitar camadas opcionais que podem causar problemas
+  disableFontFace: false, // Manter fontes para melhor renderização
+  cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+  cMapPacked: true,
+  standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
+});
+
+interface TakeoffMeasurement {
+  id: string;
+  type:
+    | 'trench'
+    | 'conduit'
+    | 'vault'
+    | 'yardage'
+    | 'note'
+    | 'bore-shot'
+    | 'bore-pit'
+    | 'concrete'
+    | 'asphalt'
+    | 'hydro-excavation-trench'
+    | 'hydro-excavation-hole'
+    | 'hydro-excavation-pothole';
+  label: string;
+  coordinates: { x: number; y: number }[];
+  length?: number;
+  area?: number;
+  notes?: string;
+  unit: string;
+  color: string;
+  trenchWidth?: number;
+  trenchDepth?: number;
+  spoilVolumeCY?: number;
+  asphaltRemoval?: {
+    width: number;
+    thickness: number;
+    volumeCY: number;
+  };
+  concreteRemoval?: {
+    width: number;
+    thickness: number;
+    volumeCY: number;
+  };
+  backfill?: {
+    type: string;
+    customType?: string;
+    width: number;
+    depth: number;
+    volumeCY: number;
+  };
+  conduits?: Array<{
+    sizeIn: string;
+    count: number;
+    material: string;
+  }>;
+  hydroExcavationType?: 'trench' | 'hole' | 'potholing';
+  hydroHoleShape?: 'rectangle' | 'circle';
+  hydroHoleDimensions?: {
+    length?: number;
+    width?: number;
+    diameter?: number;
+    depth: number;
+    depthUnit: 'inches' | 'feet';
+  };
+  hydroPotholingData?: {
+    surfaceType: 'asphalt' | 'concrete' | 'dirt';
+    averageDepth: number;
+    depthUnit: 'inches' | 'feet';
+    includeRestoration: boolean;
+  };
+  vaultDimensions?: {
+    length: number;
+    width: number;
+    depth: number;
+  };
+  holeSize?: {
+    length: number;
+    width: number;
+    depth: number;
+  };
+  vaultSpoilVolumeCY?: number;
+  vaultAsphaltRemovalCY?: number;
+  vaultConcreteRemovalCY?: number;
+  vaultAsphaltRestorationCY?: number;
+  vaultConcreteRestorationCY?: number;
+  vaultBackfillCY?: number;
+  vaultBackfillType?: string;
+  vaultTrafficRated?: boolean;
+}
+
+interface QuickTakeoffViewerProps {
+  pdfUrl: string;
+  currentPage: number;
+  totalPages: number;
+  setCurrentPage: (page: number) => void;
+  setTotalPages: (pages: number) => void;
+  activeTool: string;
+  measurements: TakeoffMeasurement[];
+  onAddMeasurement: (measurement: Omit<TakeoffMeasurement, 'id'>) => void;
+  scale: string;
+  zoom: number;
+  trenchConfig: any;
+  boreShotConfig: any;
+  conduitConfig: any;
+  hydroExcavationConfig: any;
+  vaultConfig: any;
+}
+
+const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
+  pdfUrl,
+  currentPage,
+  totalPages,
+  setCurrentPage,
+  setTotalPages,
+  activeTool,
+  measurements,
+  onAddMeasurement,
+  scale,
+  zoom,
+  trenchConfig,
+  boreShotConfig,
+  conduitConfig,
+  hydroExcavationConfig,
+  vaultConfig,
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [drawingPoints, setDrawingPoints] = useState<
+    { x: number; y: number }[]
+  >([]);
+  const [currentMeasurement, setCurrentMeasurement] = useState<any>(null);
+  const [pageDimensions, setPageDimensions] = useState<{
+    width: number;
+    height: number;
+  }>({ width: 0, height: 0 });
+
+  // Estados para zoom e navegação
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+
+  // Estado para histórico de medições (desfazer)
+  const [measurementHistory, setMeasurementHistory] = useState<
+    TakeoffMeasurement[]
+  >([]);
+
+  const { toast } = useToast();
+
+  // Memoizar as opções do PDF.js para evitar recriações desnecessárias
+  const pdfOptions = useMemo(() => createPdfOptions(), []);
+
+  const handleDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    console.log('Document loaded successfully with', numPages, 'pages');
+    setTotalPages(numPages);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    console.log('Changing page from', currentPage, 'to', newPage);
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  const handlePageLoadSuccess = (page: any) => {
+    const { width, height } = page.getViewport({ scale: 1 });
+    setPageDimensions({ width, height });
+    console.log('Page loaded with dimensions:', { width, height });
+  };
+
+  // Função para pan (arrastar) com mouse
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Estabilizar imagem quando ferramenta estiver ativa
+    if (activeTool) {
+      return;
+    }
+
+    if (e.button === 0) {
+      // Botão esquerdo do mouse
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Estabilizar movimento quando ferramenta estiver ativa
+    if (activeTool || !isDragging) {
+      return;
+    }
+
+    if (isDragging) {
+      const newOffset = {
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      };
+      setPanOffset(newOffset);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Função para resetar zoom e pan
+  const resetView = () => {
+    setZoomLevel(1);
+    setPanOffset({ x: 0, y: 0 });
+  };
+
+  // Função para desfazer última medição
+  const undoLastMeasurement = () => {
+    if (measurements.length === 0) {
+      toast({
+        title: 'Nada para desfazer',
+        description: 'Não há medições para desfazer',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const lastMeasurement = measurements[measurements.length - 1];
+    const newMeasurements = measurements.slice(0, -1);
+
+    // Adicionar ao histórico
+    setMeasurementHistory(prev => [...prev, lastMeasurement]);
+
+    // Atualizar medições
+    // TODO: Implementar callback para atualizar medições no componente pai
+
+    toast({
+      title: 'Medição Desfeita',
+      description: `${lastMeasurement.label} foi removida`,
+    });
+  };
+
+  // Navegação por teclado
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowLeft':
+          e.preventDefault();
+          if (currentPage > 1) {
+            handlePageChange(currentPage - 1);
+            toast({
+              title: 'Página Anterior',
+              description: `Página ${currentPage - 1} de ${totalPages}`,
+            });
+          }
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          if (currentPage < totalPages) {
+            handlePageChange(currentPage + 1);
+            toast({
+              title: 'Próxima Página',
+              description: `Página ${currentPage + 1} de ${totalPages}`,
+            });
+          }
+          break;
+        case 'Home':
+          e.preventDefault();
+          if (currentPage !== 1) {
+            handlePageChange(1);
+            toast({
+              title: 'Primeira Página',
+              description: 'Página 1',
+            });
+          }
+          break;
+        case 'End':
+          e.preventDefault();
+          if (currentPage !== totalPages) {
+            handlePageChange(totalPages);
+            toast({
+              title: 'Última Página',
+              description: `Página ${totalPages}`,
+            });
+          }
+          break;
+        case '0':
+          if (e.ctrlKey) {
+            e.preventDefault();
+            resetView();
+            toast({
+              title: 'View Resetada',
+              description: 'Zoom voltou para 100% e posição centralizada',
+            });
+          }
+          break;
+        case 'r':
+          if (e.ctrlKey) {
+            e.preventDefault();
+            resetView();
+            toast({
+              title: 'View Resetada',
+              description: 'Zoom e posição resetados',
+            });
+          }
+          break;
+        case 'z':
+          if (e.ctrlKey) {
+            e.preventDefault();
+            undoLastMeasurement();
+          }
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [currentPage, totalPages, handlePageChange, toast, measurements]);
+
+  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!activeTool) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / zoom;
+    const y = (e.clientY - rect.top) / zoom;
+
+    console.log('Mouse down at:', { x, y, activeTool });
+    setIsDrawing(true);
+    setDrawingPoints([{ x, y }]);
+  };
+
+  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !activeTool) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / zoom;
+    const y = (e.clientY - rect.top) / zoom;
+
+    setDrawingPoints(prev => [...prev, { x, y }]);
+  };
+
+  const handleCanvasMouseUp = () => {
+    if (!isDrawing || !activeTool) return;
+
+    console.log('Mouse up, drawing points:', drawingPoints);
+    setIsDrawing(false);
+
+    if (drawingPoints.length < 2) {
+      setDrawingPoints([]);
+      return;
+    }
+
+    // Calculate measurement based on tool type
+    const measurement = createMeasurementFromPoints(drawingPoints);
+    if (measurement) {
+      console.log('Adding measurement:', measurement);
+      onAddMeasurement(measurement);
+    }
+
+    setDrawingPoints([]);
+  };
+
+  const createMeasurementFromPoints = (
+    points: { x: number; y: number }[]
+  ): Omit<TakeoffMeasurement, 'id'> | null => {
+    if (points.length < 2) return null;
+
+    const startPoint = points[0];
+    const endPoint = points[points.length - 1];
+
+    // Calculate length (simplified - in real implementation you'd use proper scale conversion)
+    const dx = endPoint.x - startPoint.x;
+    const dy = endPoint.y - startPoint.y;
+    const length = Math.sqrt(dx * dx + dy * dy) / 100; // Simplified scale conversion
+
+    const baseMeasurement = {
+      type: activeTool,
+      label: `${activeTool.charAt(0).toUpperCase() + activeTool.slice(1)} ${measurements.filter(m => m.type === activeTool).length + 1}`,
+      coordinates: points,
+      length,
+      unit: 'ft',
+      color: getToolColor(activeTool),
+      notes: '',
+    };
+
+    switch (activeTool) {
+      case 'trench':
+        return {
+          ...baseMeasurement,
+          type: 'trench',
+          trenchWidth: trenchConfig?.width || 2,
+          trenchDepth: trenchConfig?.depth || 3,
+          spoilVolumeCY: calculateSpoilVolume(
+            length,
+            trenchConfig?.width || 2,
+            trenchConfig?.depth || 3
+          ),
+          asphaltRemoval: trenchConfig?.asphaltRemoval
+            ? {
+                width: trenchConfig.asphaltRemoval.width,
+                thickness: trenchConfig.asphaltRemoval.thickness,
+                volumeCY: calculateAsphaltVolume(
+                  length,
+                  trenchConfig.asphaltRemoval.width,
+                  trenchConfig.asphaltRemoval.thickness
+                ),
+              }
+            : undefined,
+          concreteRemoval: trenchConfig?.concreteRemoval
+            ? {
+                width: trenchConfig.concreteRemoval.width,
+                thickness: trenchConfig.concreteRemoval.thickness,
+                volumeCY: calculateConcreteVolume(
+                  length,
+                  trenchConfig.concreteRemoval.width,
+                  trenchConfig.concreteRemoval.thickness
+                ),
+              }
+            : undefined,
+          backfill: trenchConfig?.backfill
+            ? {
+                type: trenchConfig.backfill.type,
+                customType: trenchConfig.backfill.customType,
+                width: trenchConfig.backfill.width,
+                depth: trenchConfig.backfill.depth,
+                volumeCY: calculateBackfillVolume(
+                  length,
+                  trenchConfig.backfill.width,
+                  trenchConfig.backfill.depth
+                ),
+              }
+            : undefined,
+          conduits: conduitConfig?.conduits || [],
+        };
+
+      case 'bore-shot':
+        return {
+          ...baseMeasurement,
+          type: 'bore-shot',
+          conduits: boreShotConfig?.conduits || [],
+        };
+
+      case 'conduit':
+        return {
+          ...baseMeasurement,
+          type: 'conduit',
+          conduits: conduitConfig?.conduits || [],
+        };
+
+      case 'hydro-excavation':
+        return {
+          ...baseMeasurement,
+          type: 'hydro-excavation-trench',
+          hydroExcavationType: hydroExcavationConfig?.type || 'trench',
+          hydroHoleShape: hydroExcavationConfig?.holeShape || 'rectangle',
+          hydroHoleDimensions: hydroExcavationConfig?.holeDimensions,
+          hydroPotholingData: hydroExcavationConfig?.potholingData,
+          conduits: hydroExcavationConfig?.conduits || [],
+        };
+
+      case 'vault':
+        return {
+          ...baseMeasurement,
+          type: 'vault',
+          vaultDimensions: vaultConfig?.dimensions,
+          holeSize: vaultConfig?.holeSize,
+          vaultSpoilVolumeCY: vaultConfig?.spoilVolumeCY,
+          vaultAsphaltRemovalCY: vaultConfig?.asphaltRemovalCY,
+          vaultConcreteRemovalCY: vaultConfig?.concreteRemovalCY,
+          vaultAsphaltRestorationCY: vaultConfig?.asphaltRestorationCY,
+          vaultConcreteRestorationCY: vaultConfig?.concreteRestorationCY,
+          vaultBackfillCY: vaultConfig?.backfillCY,
+          vaultBackfillType: vaultConfig?.backfillType,
+          vaultTrafficRated: vaultConfig?.trafficRated,
+        };
+
+      default:
+        return { ...baseMeasurement, type: 'note' as const };
+    }
+  };
+
+  const getToolColor = (tool: string): string => {
+    const colors: Record<string, string> = {
+      trench: '#ef4444',
+      'bore-shot': '#3b82f6',
+      conduit: '#10b981',
+      'hydro-excavation': '#f59e0b',
+      vault: '#8b5cf6',
+      yardage: '#ec4899',
+      note: '#6b7280',
+    };
+    return colors[tool] || '#6b7280';
+  };
+
+  const calculateSpoilVolume = (
+    length: number,
+    width: number,
+    depth: number
+  ): number => {
+    return (length * width * depth) / 27; // Convert to cubic yards
+  };
+
+  const calculateAsphaltVolume = (
+    length: number,
+    width: number,
+    thickness: number
+  ): number => {
+    return (length * width * thickness) / 27;
+  };
+
+  const calculateConcreteVolume = (
+    length: number,
+    width: number,
+    thickness: number
+  ): number => {
+    return (length * width * thickness) / 27;
+  };
+
+  const calculateBackfillVolume = (
+    length: number,
+    width: number,
+    depth: number
+  ): number => {
+    return (length * width * depth) / 27;
+  };
+
+  // Draw measurements on canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !pageDimensions.width || !pageDimensions.height) return;
+
+    // Set canvas dimensions to match page
+    canvas.width = pageDimensions.width * zoom;
+    canvas.height = pageDimensions.height * zoom;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Set zoom
+    ctx.save();
+    ctx.scale(zoom, zoom);
+
+    // Draw existing measurements
+    measurements.forEach(measurement => {
+      if (measurement.coordinates.length < 2) return;
+
+      ctx.strokeStyle = measurement.color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(measurement.coordinates[0].x, measurement.coordinates[0].y);
+
+      for (let i = 1; i < measurement.coordinates.length; i++) {
+        ctx.lineTo(measurement.coordinates[i].x, measurement.coordinates[i].y);
+      }
+
+      ctx.stroke();
+
+      // Draw measurement label
+      if (measurement.length) {
+        const midPoint =
+          measurement.coordinates[
+            Math.floor(measurement.coordinates.length / 2)
+          ];
+        ctx.fillStyle = measurement.color;
+        ctx.font = '12px Arial';
+        ctx.fillText(
+          `${measurement.length.toFixed(2)}'`,
+          midPoint.x + 5,
+          midPoint.y - 5
+        );
+      }
+    });
+
+    // Draw current drawing
+    if (drawingPoints.length > 1) {
+      ctx.strokeStyle = getToolColor(activeTool);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(drawingPoints[0].x, drawingPoints[0].y);
+
+      for (let i = 1; i < drawingPoints.length; i++) {
+        ctx.lineTo(drawingPoints[i].x, drawingPoints[i].y);
+      }
+
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }, [measurements, drawingPoints, activeTool, zoom, pageDimensions]);
+
+  if (!pdfUrl) {
+    return (
+      <div className='flex items-center justify-center h-full bg-gray-50'>
+        <div className='text-center'>
+          <div className='text-gray-400 text-6xl mb-4'>📄</div>
+          <h3 className='text-lg font-medium text-gray-900 mb-2'>
+            No PDFs loaded
+          </h3>
+          <p className='text-gray-500'>Upload a PDF to get started</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className='h-full flex flex-col'>
+      {/* PDF Controls */}
+      <div className='pdf-controls bg-white border-b border-gray-200 p-4 flex-shrink-0'>
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center space-x-4'>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage <= 1}
+              className='hover:bg-gray-100'
+            >
+              <ChevronLeft className='h-4 w-4' />
+            </Button>
+
+            <span className='text-sm font-medium'>
+              Página {currentPage} de {totalPages || '...'}
+            </span>
+
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage >= totalPages}
+              className='hover:bg-gray-100'
+            >
+              <ChevronRight className='h-4 w-4' />
+            </Button>
+          </div>
+
+          <div className='text-sm text-gray-500'>
+            Escala: {scale} | Zoom: {Math.round(zoom * zoomLevel * 100)}%
+          </div>
+        </div>
+      </div>
+
+      {/* PDF Viewer */}
+      <div
+        className='pdf-viewer-container flex-1 overflow-auto bg-gray-100 p-4'
+        ref={containerRef}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        style={{
+          cursor: activeTool
+            ? 'crosshair'
+            : isDragging
+              ? 'grabbing'
+              : 'default',
+        }}
+      >
+        <div
+          className='relative bg-white shadow-lg mx-auto'
+          style={{
+            maxWidth: 'fit-content',
+            transform: `scale(${zoomLevel}) translate(${panOffset.x}px, ${panOffset.y}px)`,
+            transformOrigin: 'center',
+            transition: isDragging ? 'none' : 'transform 0.1s ease-out',
+          }}
+        >
+          {!pdfUrl ? (
+            <div className='flex items-center justify-center p-8'>
+              <div className='text-center'>
+                <div className='text-gray-400 text-6xl mb-4'>📄</div>
+                <p className='text-gray-600 font-medium text-lg mb-2'>
+                  Nenhum PDF carregado
+                </p>
+                <p className='text-gray-500 text-sm'>
+                  Use o botão de upload para carregar um arquivo PDF
+                </p>
+              </div>
+            </div>
+          ) : (
+            <Document
+              file={pdfUrl}
+              onLoadSuccess={handleDocumentLoadSuccess}
+              onLoadError={(error: Error) => {
+                console.error('Error loading PDF:', error);
+
+                // Handle specific PDF errors
+                if (error.name === 'InvalidPDFException') {
+                  console.error('❌ Invalid PDF structure detected:', {
+                    error: error.message,
+                    stack: error.stack,
+                    pdfUrl: pdfUrl,
+                  });
+
+                  // Show user-friendly error message
+                  toast({
+                    title: 'PDF Error',
+                    description:
+                      'The PDF file appears to be corrupted or has an invalid structure. Please try uploading a different PDF file.',
+                    variant: 'destructive',
+                  });
+                } else if (error.name === 'MissingPDFException') {
+                  console.error('❌ PDF file not found:', error.message);
+                  toast({
+                    title: 'PDF Not Found',
+                    description:
+                      'The PDF file could not be found. Please check the file URL and try again.',
+                    variant: 'destructive',
+                  });
+                } else if (error.name === 'UnexpectedResponseException') {
+                  console.error(
+                    '❌ Unexpected response from server:',
+                    error.message
+                  );
+                  toast({
+                    title: 'Server Error',
+                    description:
+                      'The server returned an unexpected response. Please try again later.',
+                    variant: 'destructive',
+                  });
+                } else {
+                  console.error('❌ Unknown PDF error:', error);
+                  toast({
+                    title: 'PDF Loading Error',
+                    description:
+                      'An error occurred while loading the PDF. Please try again.',
+                    variant: 'destructive',
+                  });
+                }
+              }}
+              loading={
+                <div className='flex items-center justify-center p-8'>
+                  <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-red-600'></div>
+                </div>
+              }
+              error={
+                <div className='flex items-center justify-center p-8'>
+                  <div className='text-center'>
+                    <div className='text-red-500 text-4xl mb-2'>❌</div>
+                    <p className='text-red-600 font-medium'>
+                      Error loading PDF
+                    </p>
+                    <p className='text-gray-500 text-sm mt-1'>
+                      Please check if the file is accessible and try again
+                    </p>
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      className='mt-2'
+                      onClick={() => window.location.reload()}
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                </div>
+              }
+              options={pdfOptions}
+            >
+              <Page
+                pageNumber={currentPage}
+                scale={zoom}
+                onLoadSuccess={handlePageLoadSuccess}
+                onLoadError={error => {
+                  console.error('Erro ao carregar página:', error);
+                }}
+                loading={
+                  <div className='flex items-center justify-center p-8'>
+                    <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-red-600'></div>
+                  </div>
+                }
+                error={
+                  <div className='text-center'>
+                    <div className='text-red-500 text-4xl mb-2'>❌</div>
+                    <p className='text-gray-600 font-medium'>
+                      Erro ao carregar página
+                    </p>
+                    <p className='text-gray-500 text-sm mt-1'>
+                      Página {currentPage}
+                    </p>
+                  </div>
+                }
+              />
+            </Document>
+          )}
+
+          {/* Overlay Canvas for Measurements */}
+          {pageDimensions.width > 0 && pageDimensions.height > 0 && (
+            <canvas
+              ref={canvasRef}
+              className='measurement-canvas'
+              style={{
+                width: `${pageDimensions.width * zoom * zoomLevel}px`,
+                height: `${pageDimensions.height * zoom * zoomLevel}px`,
+                cursor: activeTool ? 'crosshair' : 'default',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                pointerEvents: activeTool ? 'auto' : 'none',
+              }}
+              onMouseDown={handleCanvasMouseDown}
+              onMouseMove={handleCanvasMouseMove}
+              onMouseUp={handleCanvasMouseUp}
+              onMouseLeave={() => setIsDrawing(false)}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default QuickTakeoffViewer;
