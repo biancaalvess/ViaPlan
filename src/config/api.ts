@@ -1,6 +1,6 @@
 // API Configuration
 export const API_CONFIG = {
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://devco-backend-58oq.onrender.com/',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://viaplan-backend.onrender.com/',
 };
 
 export function getAuthHeaders(): Record<string, string> {

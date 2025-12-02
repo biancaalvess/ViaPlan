@@ -217,7 +217,7 @@ npm install
 3. Configure as variáveis de ambiente:
 Crie um arquivo `.env` na raiz do projeto:
 ```env
-VITE_API_BASE_URL=https://devco-backend-58oq.onrender.com/
+VITE_API_BASE_URL=https://viaplan-backend.onrender.com/
 ```
 
 4. Inicie o servidor de desenvolvimento:

@@ -1,4 +1,5 @@
 import { API_CONFIG } from '../config/api';
+import { apiService } from './apiService';
 
 export interface OCRResult {
   success: boolean;
@@ -67,7 +68,7 @@ class OCRService {
         formData.append('enableCache', options.enableCache.toString());
       }
 
-      const response = await api.post(`${this.baseUrl}/process`, formData, {
+      const response = await apiService.post(`${this.baseUrl}/process`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -94,7 +95,7 @@ class OCRService {
     options: OCRProcessingOptions = {}
   ): Promise<OCRResult> {
     try {
-      const response = await api.post(`${this.baseUrl}/process-path`, {
+      const response = await apiService.post(`${this.baseUrl}/process-path`, {
         filePath,
         ...options,
       });
@@ -136,7 +137,7 @@ class OCRService {
         formData.append('enableCache', options.enableCache.toString());
       }
 
-      const response = await api.post(`${this.baseUrl}/batch`, formData, {
+      const response = await apiService.post(`${this.baseUrl}/batch`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -157,7 +158,7 @@ class OCRService {
    */
   async getStatus(): Promise<{ success: boolean; data?: OCRStatus; error?: string }> {
     try {
-      const response = await api.get(`${this.baseUrl}/status`);
+      const response = await apiService.get(`${this.baseUrl}/status`);
       return response.data;
     } catch (error: any) {
       console.error('OCR status error:', error);
@@ -173,7 +174,7 @@ class OCRService {
    */
   async initialize(options: OCRProcessingOptions = {}): Promise<{ success: boolean; message?: string; data?: any; error?: string }> {
     try {
-      const response = await api.post(`${this.baseUrl}/initialize`, options);
+      const response = await apiService.post(`${this.baseUrl}/initialize`, options);
       return response.data;
     } catch (error: any) {
       console.error('OCR initialization error:', error);
@@ -189,7 +190,7 @@ class OCRService {
    */
   async clearCache(): Promise<{ success: boolean; message?: string; error?: string }> {
     try {
-      const response = await api.delete(`${this.baseUrl}/cache`);
+      const response = await apiService.delete(`${this.baseUrl}/cache`);
       return response.data;
     } catch (error: any) {
       console.error('OCR cache clear error:', error);
@@ -205,7 +206,7 @@ class OCRService {
    */
   async terminate(): Promise<{ success: boolean; message?: string; error?: string }> {
     try {
-      const response = await api.delete(`${this.baseUrl}/terminate`);
+      const response = await apiService.delete(`${this.baseUrl}/terminate`);
       return response.data;
     } catch (error: any) {
       console.error('OCR termination error:', error);
