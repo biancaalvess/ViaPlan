@@ -25,7 +25,7 @@ export const PDFTest: React.FC = () => {
       console.log('🔧 Worker:', pdfjsLib.GlobalWorkerOptions.workerSrc);
     } catch (err) {
       setError(`Erro ao configurar PDF.js: ${err}`);
-      console.error('❌ Erro ao configurar PDF.js:', err);
+      console.error(' Erro ao configurar PDF.js:', err);
     }
   };
 

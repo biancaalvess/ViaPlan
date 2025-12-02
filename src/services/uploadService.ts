@@ -208,7 +208,7 @@ export class UploadService {
 
       return await response.json();
     } catch (error) {
-      console.error('❌ Erro ao criar sessão de upload:', error);
+      console.error(' Erro ao criar sessão de upload:', error);
       return {
         success: false,
         error: 'Erro ao criar sessão de upload'
@@ -241,7 +241,7 @@ export class UploadService {
 
       return await response.json();
     } catch (error) {
-      console.error('❌ Erro ao enviar chunk:', error);
+      console.error(' Erro ao enviar chunk:', error);
       return {
         success: false,
         error: 'Erro ao enviar chunk'
@@ -263,7 +263,7 @@ export class UploadService {
 
       return await response.json();
     } catch (error) {
-      console.error('❌ Erro ao finalizar upload:', error);
+      console.error(' Erro ao finalizar upload:', error);
       return {
         success: false,
         error: 'Erro ao finalizar upload'
@@ -535,7 +535,7 @@ export class UploadService {
 
       return await response.json();
     } catch (error) {
-      console.error('❌ Erro ao verificar status do arquivo:', error);
+      console.error(' Erro ao verificar status do arquivo:', error);
       throw error;
     }
   }
@@ -553,7 +553,7 @@ export class UploadService {
 
       return await response.json();
     } catch (error) {
-      console.error('❌ Erro ao listar arquivos:', error);
+      console.error(' Erro ao listar arquivos:', error);
       throw error;
     }
   }

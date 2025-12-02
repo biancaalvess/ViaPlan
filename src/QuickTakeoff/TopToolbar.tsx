@@ -26,15 +26,11 @@ interface TopToolbarProps {
 }
 
 const scaleOptions = [
-  '1" = 100\'',
-  '1" = 50\'',
-  '1" = 20\'',
-  '1" = 10\'',
-  '1/4" = 1\'-0"',
-  '1/8" = 1\'-0"',
-  '1/16" = 1\'-0"',
-  'Full Size (1:1)',
-  'Custom',
+  '1:1000',
+  '1:500',
+  '1:200',
+  '1:100',
+  'Escala Manual',
 ];
 
 export const TopToolbar: React.FC<TopToolbarProps> = ({

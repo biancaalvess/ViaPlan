@@ -3,7 +3,7 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, AlertCircle, RefreshCw, FileX } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { ScaleCalibration } from './ScaleCalibration';
 
@@ -166,6 +166,10 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
   const [measurementHistory, setMeasurementHistory] = useState<
     TakeoffMeasurement[]
   >([]);
+
+  // Estado para controle de erro e retry
+  const [pdfError, setPdfError] = useState<Error | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   const { toast } = useToast();
 
@@ -629,43 +633,35 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
   return (
     <div className='h-full flex flex-col'>
       {/* PDF Controls */}
-      <div className='pdf-controls bg-card border-b border-border p-4 flex-shrink-0'>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center space-x-4'>
+      <div className='pdf-controls bg-card border-b border-border flex-shrink-0 w-full sticky top-0 z-10'>
+        <div className='flex flex-row items-center justify-between gap-2 sm:gap-4 md:gap-6 w-full px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4'>
+          <div className='flex items-center space-x-2 sm:space-x-3 md:space-x-4 flex-shrink-0'>
             <Button
               variant='outline'
               size='sm'
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage <= 1}
-              className='hover:bg-gray-100'
+              className='hover:bg-gray-100 flex-shrink-0'
             >
               <ChevronLeft className='h-4 w-4' />
             </Button>
-
-            <span className='text-sm font-medium'>
-              Página {currentPage} de {totalPages || '...'}
-            </span>
 
             <Button
               variant='outline'
               size='sm'
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage >= totalPages}
-              className='hover:bg-gray-100'
+              className='hover:bg-gray-100 flex-shrink-0'
             >
               <ChevronRight className='h-4 w-4' />
             </Button>
-          </div>
-
-          <div className='text-sm text-gray-500'>
-            Escala: {scale} | Zoom: {Math.round(zoom * zoomLevel * 100)}%
           </div>
         </div>
       </div>
 
       {/* PDF Viewer */}
       <div
-        className='pdf-viewer-container flex-1 overflow-auto bg-secondary/20 p-4'
+        className='pdf-viewer-container flex-1 overflow-auto bg-secondary/20 p-2 sm:p-4 md:p-6 min-h-0'
         ref={containerRef}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -680,32 +676,38 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
         }}
       >
         <div
-          className='relative bg-card shadow-lg mx-auto'
+          className='relative bg-card shadow-lg mx-auto w-full'
           style={{
             maxWidth: 'fit-content',
+            minHeight: '100%',
             transform: `scale(${zoomLevel}) translate(${panOffset.x}px, ${panOffset.y}px)`,
             transformOrigin: 'center',
             transition: isDragging ? 'none' : 'transform 0.1s ease-out',
           }}
         >
           {!pdfUrl ? (
-            <div className='flex items-center justify-center p-8'>
-              <div className='text-center'>
-                <div className='text-gray-400 text-6xl mb-4'>📄</div>
-                <p className='text-gray-600 font-medium text-lg mb-2'>
+            <div className='flex items-center justify-center w-full h-full min-h-[calc(100vh-200px)] p-4 sm:p-6 md:p-8 lg:p-12'>
+              <div className='text-center w-full max-w-md mx-auto px-4'>
+                <div className='text-gray-400 text-5xl sm:text-6xl md:text-7xl mb-4 sm:mb-6'>📄</div>
+                <p className='text-gray-600 dark:text-gray-300 font-medium text-base sm:text-lg md:text-xl mb-2 sm:mb-3'>
                   Nenhum PDF carregado
                 </p>
-                <p className='text-gray-500 text-sm'>
+                <p className='text-gray-500 dark:text-gray-400 text-sm sm:text-base'>
                   Use o botão de upload para carregar um arquivo PDF
                 </p>
               </div>
             </div>
           ) : (
             <Document
+              key={retryKey}
               file={pdfUrl}
-              onLoadSuccess={handleDocumentLoadSuccess}
+              onLoadSuccess={(data) => {
+                handleDocumentLoadSuccess(data);
+                setPdfError(null);
+              }}
               onLoadError={(error: Error) => {
                 console.error('Error loading PDF:', error);
+                setPdfError(error);
 
                 // Handle specific PDF errors
                 if (error.name === 'InvalidPDFException') {
@@ -752,28 +754,49 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
                 }
               }}
               loading={
-                <div className='flex items-center justify-center p-8'>
-                  <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-red-600'></div>
+                <div className='flex items-center justify-center w-full h-full min-h-[400px] p-8'>
+                  <div className='flex flex-col items-center gap-3'>
+                    <div className='animate-spin rounded-full h-10 w-10 border-b-2 border-red-600'></div>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>
+                      Carregando PDF...
+                    </p>
+                  </div>
                 </div>
               }
               error={
-                <div className='flex items-center justify-center p-8'>
-                  <div className='text-center'>
-                    <div className='text-red-500 text-4xl mb-2'>❌</div>
-                    <p className='text-red-600 font-medium'>
+                <div className='flex items-center justify-center w-full h-full min-h-[400px] p-6'>
+                  <div className='text-center w-full max-w-md mx-auto'>
+                    <div className='inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 mb-4'>
+                      <FileX className='w-8 h-8 text-red-600 dark:text-red-400' />
+                    </div>
+                    <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2'>
                       Erro ao carregar PDF
-                    </p>
-                    <p className='text-gray-500 text-sm mt-1'>
-                      Por favor, verifique se o arquivo está acessível e tente novamente
+                    </h3>
+                    <p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>
+                      Não foi possível carregar o arquivo. Verifique se está acessível e tente novamente.
                     </p>
                     <Button
-                      variant='outline'
+                      variant='default'
                       size='sm'
-                      className='mt-2'
-                      onClick={() => window.location.reload()}
+                      className='bg-red-600 hover:bg-red-700 text-white'
+                      onClick={() => {
+                        setRetryKey(prev => prev + 1);
+                        setPdfError(null);
+                      }}
                     >
+                      <RefreshCw className='w-4 h-4 mr-2' />
                       Tentar Novamente
                     </Button>
+                    {pdfError && (
+                      <details className='mt-4 text-left'>
+                        <summary className='text-xs text-gray-500 dark:text-gray-400 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300'>
+                          Detalhes do erro
+                        </summary>
+                        <p className='mt-2 text-xs text-gray-600 dark:text-gray-400 break-all bg-gray-50 dark:bg-gray-800 p-2 rounded'>
+                          {pdfError.message || 'Erro desconhecido'}
+                        </p>
+                      </details>
+                    )}
                   </div>
                 </div>
               }
@@ -787,19 +810,40 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
                   console.error('Erro ao carregar página:', error);
                 }}
                 loading={
-                  <div className='flex items-center justify-center p-8'>
-                    <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-red-600'></div>
+                  <div className='flex items-center justify-center w-full h-full min-h-[400px] p-8'>
+                    <div className='flex flex-col items-center gap-3'>
+                      <div className='animate-spin rounded-full h-10 w-10 border-b-2 border-red-600'></div>
+                      <p className='text-sm text-gray-600 dark:text-gray-400'>
+                        Carregando página...
+                      </p>
+                    </div>
                   </div>
                 }
                 error={
-                  <div className='text-center'>
-                    <div className='text-red-500 text-4xl mb-2'>❌</div>
-                    <p className='text-gray-600 font-medium'>
-                      Erro ao carregar página
-                    </p>
-                    <p className='text-gray-500 text-sm mt-1'>
-                      Página {currentPage}
-                    </p>
+                  <div className='flex items-center justify-center w-full h-full min-h-[400px] p-6'>
+                    <div className='text-center w-full max-w-md mx-auto'>
+                      <div className='inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-50 dark:bg-amber-900/20 mb-3'>
+                        <AlertCircle className='w-6 h-6 text-amber-600 dark:text-amber-400' />
+                      </div>
+                      <h4 className='text-base font-semibold text-gray-900 dark:text-gray-100 mb-1'>
+                        Erro ao carregar página
+                      </h4>
+                      <p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>
+                        Página {currentPage} de {totalPages || '...'}
+                      </p>
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={() => {
+                          const newPage = currentPage;
+                          setCurrentPage(1);
+                          setTimeout(() => setCurrentPage(newPage), 100);
+                        }}
+                      >
+                        <RefreshCw className='w-4 h-4 mr-2' />
+                        Tentar Novamente
+                      </Button>
+                    </div>
                   </div>
                 }
               />

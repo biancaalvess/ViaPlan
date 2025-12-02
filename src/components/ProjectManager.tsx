@@ -188,15 +188,15 @@ export function ProjectManager() {
             `✅ ${serverProjects.length} projetos carregados do servidor`
           );
         } catch (serverError) {
-          console.error('❌ Erro ao carregar do servidor:', serverError);
+          console.error(' Erro ao carregar do servidor:', serverError);
           await loadFromOfflineStore();
         }
       } else {
-        console.log('🔴 Offline - carregando do cache local...');
+        console.log(' Offline - carregando do cache local...');
         await loadFromOfflineStore();
       }
     } catch (error) {
-      console.error('❌ Erro ao carregar projetos:', error);
+      console.error(' Erro ao carregar projetos:', error);
       setError(
         error instanceof Error
           ? error.message
@@ -235,7 +235,7 @@ export function ProjectManager() {
         );
       }
     } catch (error) {
-      console.error('❌ Erro ao carregar dados offline:', error);
+      console.error(' Erro ao carregar dados offline:', error);
       setProjects([]);
     }
   }, [offlineStore]);
