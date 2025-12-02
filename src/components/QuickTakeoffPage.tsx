@@ -14,6 +14,7 @@ import {
   Layers,
   FileText,
   X,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,16 +48,19 @@ const QuickTakeoffPage = () => {
 
   // State management
   const [pdfUrl, setPdfUrl] = useState<string>("");
+  const [fileType, setFileType] = useState<"pdf" | "image" | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [scale, setScale] = useState("1:1000");
   const [zoom, setZoom] = useState(1);
   const [showManualScale, setShowManualScale] = useState(false);
   const [manualScaleValue, setManualScaleValue] = useState<number | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string>("#ef4444");
 
   // Custom hooks
   const { loadPlantFromId } = usePlants();
-  const { measurements, addMeasurement, deleteMeasurement } = useMeasurements();
+  const { measurements, addMeasurement, deleteMeasurement, clearMeasurements } =
+    useMeasurements();
   const { canUndo, undoLastAction, saveAction } = useActionHistory();
   const {
     activeTool,
@@ -98,11 +102,51 @@ const QuickTakeoffPage = () => {
     }
   }, [searchParams, loadPlantFromId]);
 
-  const handleFileSelect = (fileUrl: string) => {
+  // Atualizar cor padrão quando a ferramenta mudar
+  useEffect(() => {
+    const defaultColors: Record<string, string> = {
+      trench: "#ef4444",
+      "bore-shot": "#3b82f6",
+      conduit: "#10b981",
+      "hydro-excavation": "#f59e0b",
+      vault: "#8b5cf6",
+      yardage: "#ec4899",
+      note: "#6b7280",
+    };
+    if (activeTool && defaultColors[activeTool]) {
+      setSelectedColor(defaultColors[activeTool]);
+    }
+  }, [activeTool]);
+
+  const handleFileSelect = (fileUrl: string, fileType?: "pdf" | "image") => {
     setPdfUrl(fileUrl);
+    // Usar o tipo detectado ou tentar detectar pela URL
+    if (fileType) {
+      setFileType(fileType);
+    } else {
+      const isImage = fileUrl.match(/\.(png|jpg|jpeg|gif|bmp|webp)$/i);
+      setFileType(isImage ? "image" : "pdf");
+    }
     toast({
-      title: "PDF Carregado",
-      description: "Arquivo PDF carregado com sucesso!",
+      title: fileType === "image" ? "Imagem Carregada" : "PDF Carregado",
+      description: `Arquivo ${fileType === "image" ? "imagem" : "PDF"} carregado com sucesso!`,
+    });
+  };
+
+  const handleRemovePDF = () => {
+    // Limpar URL do arquivo
+    if (pdfUrl && pdfUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(pdfUrl);
+    }
+    setPdfUrl("");
+    setFileType(null);
+    setCurrentPage(1);
+    setTotalPages(0);
+    // Limpar todas as medições quando a planta for removida
+    clearMeasurements();
+    toast({
+      title: "Arquivo Removido",
+      description: "Planta removida. Você pode carregar uma nova.",
     });
   };
 
@@ -342,6 +386,17 @@ const QuickTakeoffPage = () => {
             >
               <RotateCcw className="h-4 w-4" />
             </Button>
+            {pdfUrl && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRemovePDF}
+                className="bg-red-600/20 border-red-500/50 text-red-400 hover:bg-red-600/30 hover:border-red-500 hover:text-red-300"
+                title="Remover PDF atual"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
 
           {/* Escala Fixa */}
@@ -353,6 +408,29 @@ const QuickTakeoffPage = () => {
               {scale}
             </span>
           </div>
+
+          {/* Seletor de Cor */}
+          {activeTool && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm text-[#f3eae0]/80 font-medium">
+                Cor:
+              </span>
+              <div className="flex items-center gap-1">
+                <input
+                  type="color"
+                  value={selectedColor}
+                  onChange={(e) => setSelectedColor(e.target.value)}
+                  className="w-8 h-8 rounded border border-[#3d5a7d] cursor-pointer bg-[#2f486d]"
+                  title="Escolher cor da ferramenta"
+                />
+                <div
+                  className="w-6 h-6 rounded border border-[#3d5a7d]"
+                  style={{ backgroundColor: selectedColor }}
+                  title={`Cor atual: ${selectedColor}`}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
@@ -382,10 +460,11 @@ const QuickTakeoffPage = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Central Content Area */}
-        <div className="flex-1 bg-[#223148] flex items-center justify-center min-w-0">
+        <div className="flex-1 bg-[#223148] flex items-center justify-center min-w-0 w-full overflow-hidden">
           {pdfUrl ? (
             <QuickTakeoffViewer
               pdfUrl={pdfUrl}
+              fileType={fileType || "pdf"}
               currentPage={currentPage}
               totalPages={totalPages}
               setCurrentPage={setCurrentPage}
@@ -395,6 +474,7 @@ const QuickTakeoffPage = () => {
               onAddMeasurement={handleAddMeasurement}
               scale={scale}
               zoom={zoom}
+              selectedColor={selectedColor}
               trenchConfig={trenchConfig}
               boreShotConfig={boreShotConfig}
               conduitConfig={conduitConfig}
@@ -419,7 +499,7 @@ const QuickTakeoffPage = () => {
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-full lg:w-64 xl:w-72 bg-[#223148] border-t lg:border-t-0 lg:border-l border-[#2f486d] flex flex-col overflow-y-auto max-h-[50vh] lg:max-h-none">
+        <div className="w-full lg:w-64 xl:w-80 2xl:w-96 bg-[#223148] border-t lg:border-t-0 lg:border-l border-[#2f486d] flex flex-col overflow-y-auto max-h-[50vh] lg:max-h-none">
           {/* Measurement Tools */}
           <div className="p-2 sm:p-3 border-b border-[#2f486d]">
             <h2 className="text-xs font-semibold text-[#f3eae0] mb-1.5 sm:mb-2">

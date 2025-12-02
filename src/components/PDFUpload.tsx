@@ -21,7 +21,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLi
 interface PDFUploadProps {
   projectId?: number;
   onUploadComplete?: (imageUrl: string, pages?: PDFPage[]) => void;
-  onFileSelect?: (fileUrl: string) => void; // Nova prop para seleção de arquivo
+  onFileSelect?: (fileUrl: string, fileType?: 'pdf' | 'image') => void; // Nova prop para seleção de arquivo
 }
 
 import { UploadProgress, PDFPage } from '../types/upload';
@@ -87,15 +87,16 @@ const PDFUpload: React.FC<PDFUploadProps> = ({
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       acceptedFiles.forEach(file => {
-        // Para takeoff, criar URL do objeto blob imediatamente
-        if (onFileSelect && file.type === 'application/pdf') {
+        // Para takeoff, criar URL do objeto blob imediatamente (PDF ou imagem)
+        if (onFileSelect && (file.type === 'application/pdf' || file.type.startsWith('image/'))) {
           setIsUploading(true);
           try {
             const fileUrl = URL.createObjectURL(file);
-            onFileSelect(fileUrl);
-            console.log('PDF carregado com sucesso:', file.name);
+            const detectedType = file.type === 'application/pdf' ? 'pdf' : 'image';
+            onFileSelect(fileUrl, detectedType);
+            console.log('Arquivo carregado com sucesso:', file.name);
           } catch (error) {
-            console.error('Erro ao processar PDF:', error);
+            console.error('Erro ao processar arquivo:', error);
           } finally {
             setIsUploading(false);
           }
@@ -115,6 +116,7 @@ const PDFUpload: React.FC<PDFUploadProps> = ({
     onDrop,
     accept: {
       'application/pdf': ['.pdf'],
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'],
     },
     maxSize: 50 * 1024 * 1024, // 50MB
     multiple: true,
@@ -137,7 +139,7 @@ const PDFUpload: React.FC<PDFUploadProps> = ({
           {isUploading
             ? 'Carregando...'
             : isDragActive
-              ? 'Solte o PDF aqui...'
+              ? 'Solte o arquivo aqui...'
               : 'Upload'}
         </Button>
       </div>

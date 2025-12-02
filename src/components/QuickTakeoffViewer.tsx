@@ -16,14 +16,14 @@ if (import.meta.env.DEV) {
   console.log('QuickTakeoffViewer - Worker:', pdfjs.GlobalWorkerOptions.workerSrc);
 }
 
-// PDF.js options para melhor compatibilidade - será memoizado no componente
-const createPdfOptions = () => ({
+// PDF.js options para melhor compatibilidade - criado uma vez e reutilizado
+const PDF_OPTIONS = {
   disableOptionalContent: true, // Desabilitar camadas opcionais que podem causar problemas
   disableFontFace: false, // Manter fontes para melhor renderização
   cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
   cMapPacked: true,
   standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
-});
+};
 
 interface TakeoffMeasurement {
   id: string;
@@ -109,6 +109,7 @@ interface TakeoffMeasurement {
 
 interface QuickTakeoffViewerProps {
   pdfUrl: string;
+  fileType?: 'pdf' | 'image';
   currentPage: number;
   totalPages: number;
   setCurrentPage: (page: number) => void;
@@ -118,6 +119,7 @@ interface QuickTakeoffViewerProps {
   onAddMeasurement: (measurement: Omit<TakeoffMeasurement, 'id'>) => void;
   scale: string;
   zoom: number;
+  selectedColor?: string;
   trenchConfig: any;
   boreShotConfig: any;
   conduitConfig: any;
@@ -127,6 +129,7 @@ interface QuickTakeoffViewerProps {
 
 const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
   pdfUrl,
+  fileType = 'pdf',
   currentPage,
   totalPages,
   setCurrentPage,
@@ -136,6 +139,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
   onAddMeasurement,
   scale,
   zoom,
+  selectedColor,
   trenchConfig,
   boreShotConfig,
   conduitConfig,
@@ -159,6 +163,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
   // Estado para histórico de medições (desfazer)
   const [measurementHistory, setMeasurementHistory] = useState<
@@ -170,9 +175,6 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
   const [retryKey, setRetryKey] = useState(0);
 
   const { toast } = useToast();
-
-  // Memoizar as opções do PDF.js para evitar recriações desnecessárias
-  const pdfOptions = useMemo(() => createPdfOptions(), []);
 
   const handleDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     console.log('Document loaded successfully with', numPages, 'pages');
@@ -190,6 +192,21 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     const { width, height } = page.getViewport({ scale: 1 });
     setPageDimensions({ width, height });
     console.log('Page loaded with dimensions:', { width, height });
+    
+    // Calcular zoom inicial para caber na tela
+    if (containerRef.current && width > 0 && height > 0) {
+      const container = containerRef.current;
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+      
+      const scaleX = containerWidth / width;
+      const scaleY = containerHeight / height;
+      const initialScale = Math.min(scaleX, scaleY, 1); // Não aumentar além do tamanho original
+      
+      if (initialScale < 1 && initialScale > 0) {
+        setZoomLevel(initialScale);
+      }
+    }
   };
 
   // Função para pan (arrastar) com mouse
@@ -227,9 +244,38 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
 
   // Função para resetar zoom e pan
   const resetView = () => {
-    setZoomLevel(1);
+    if (containerRef.current && pageDimensions.width > 0 && pageDimensions.height > 0) {
+      const container = containerRef.current;
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+      
+      const scaleX = containerWidth / pageDimensions.width;
+      const scaleY = containerHeight / pageDimensions.height;
+      const fitScale = Math.min(scaleX, scaleY, 1);
+      
+      setZoomLevel(fitScale);
+    } else {
+      setZoomLevel(1);
+    }
     setPanOffset({ x: 0, y: 0 });
   };
+
+  // Calcular tamanho do container
+  useEffect(() => {
+    const updateContainerSize = () => {
+      if (containerRef.current) {
+        const container = containerRef.current;
+        setContainerSize({
+          width: container.clientWidth,
+          height: container.clientHeight,
+        });
+      }
+    };
+
+    updateContainerSize();
+    window.addEventListener('resize', updateContainerSize);
+    return () => window.removeEventListener('resize', updateContainerSize);
+  }, []);
 
   // Função para desfazer última medição
   const undoLastMeasurement = () => {
@@ -340,11 +386,14 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // O canvas está dentro de um container com transform, então precisamos
+    // calcular as coordenadas relativas ao canvas, considerando apenas o zoom
     const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / zoom;
-    const y = (e.clientY - rect.top) / zoom;
+    const scale = zoom * zoomLevel;
+    const x = (e.clientX - rect.left) / scale;
+    const y = (e.clientY - rect.top) / scale;
 
-    console.log('Mouse down at:', { x, y, activeTool });
+    console.log('Mouse down at:', { x, y, activeTool, scale, zoom, zoomLevel, rect });
     setIsDrawing(true);
     setDrawingPoints([{ x, y }]);
   };
@@ -355,12 +404,75 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // O canvas está dentro de um container com transform, então precisamos
+    // calcular as coordenadas relativas ao canvas, considerando apenas o zoom
     const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / zoom;
-    const y = (e.clientY - rect.top) / zoom;
+    const scale = zoom * zoomLevel;
+    const x = (e.clientX - rect.left) / scale;
+    const y = (e.clientY - rect.top) / scale;
 
-    setDrawingPoints(prev => [...prev, { x, y }]);
+    setDrawingPoints(prev => {
+      const newPoints = [...prev, { x, y }];
+      // Forçar atualização imediata do canvas com os novos pontos
+      requestAnimationFrame(() => {
+        redrawCanvasWithPoints(newPoints);
+      });
+      return newPoints;
+    });
   };
+
+  // Função para redesenhar o canvas imediatamente com pontos específicos
+  const redrawCanvasWithPoints = useCallback((points: { x: number; y: number }[]) => {
+    const canvas = canvasRef.current;
+    if (!canvas || !pageDimensions.width || !pageDimensions.height) return;
+
+    const scale = zoom * zoomLevel;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Limpar e redesenhar tudo
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.scale(scale, scale);
+
+    // Desenhar medições existentes
+    measurements.forEach(measurement => {
+      if (measurement.coordinates.length < 2) return;
+      ctx.strokeStyle = measurement.color;
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = 2;
+      ctx.beginPath();
+      ctx.moveTo(measurement.coordinates[0].x, measurement.coordinates[0].y);
+      for (let i = 1; i < measurement.coordinates.length; i++) {
+        ctx.lineTo(measurement.coordinates[i].x, measurement.coordinates[i].y);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    });
+
+    // Desenhar traço atual em tempo real com os pontos fornecidos
+    if (points.length > 1) {
+      const currentColor = selectedColor || getToolColor(activeTool);
+      ctx.strokeStyle = currentColor;
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = 2;
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.restore();
+  }, [measurements, activeTool, zoom, zoomLevel, pageDimensions, selectedColor]);
 
   const handleCanvasMouseUp = () => {
     if (!isDrawing || !activeTool) return;
@@ -402,7 +514,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
       coordinates: points,
       length,
       unit: 'ft',
-      color: getToolColor(activeTool),
+      color: selectedColor || getToolColor(activeTool),
       notes: '',
     };
 
@@ -552,9 +664,16 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     const canvas = canvasRef.current;
     if (!canvas || !pageDimensions.width || !pageDimensions.height) return;
 
-    // Set canvas dimensions to match page
-    canvas.width = pageDimensions.width * zoom;
-    canvas.height = pageDimensions.height * zoom;
+    // Set canvas dimensions to match page (considerando zoomLevel)
+    const scale = zoom * zoomLevel;
+    const currentWidth = pageDimensions.width * scale;
+    const currentHeight = pageDimensions.height * scale;
+    
+    // Só redimensionar se necessário para evitar redesenho desnecessário
+    if (canvas.width !== currentWidth || canvas.height !== currentHeight) {
+      canvas.width = currentWidth;
+      canvas.height = currentHeight;
+    }
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -562,16 +681,20 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Set zoom
+    // Set zoom (considerando zoomLevel)
     ctx.save();
-    ctx.scale(zoom, zoom);
+    ctx.scale(scale, scale);
 
     // Draw existing measurements
     measurements.forEach(measurement => {
       if (measurement.coordinates.length < 2) return;
 
       ctx.strokeStyle = measurement.color;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = 2;
       ctx.beginPath();
       ctx.moveTo(measurement.coordinates[0].x, measurement.coordinates[0].y);
 
@@ -580,27 +703,48 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
       }
 
       ctx.stroke();
+      ctx.shadowBlur = 0;
 
-      // Draw measurement label
+      // Draw measurement label with background for visibility
       if (measurement.length) {
         const midPoint =
           measurement.coordinates[
             Math.floor(measurement.coordinates.length / 2)
           ];
+        const text = `${measurement.length.toFixed(2)}'`;
+        ctx.font = 'bold 14px Arial';
+        const textMetrics = ctx.measureText(text);
+        const textWidth = textMetrics.width;
+        const textHeight = 16;
+        
+        // Draw background for text
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.fillRect(
+          midPoint.x + 5 - 2,
+          midPoint.y - textHeight - 2,
+          textWidth + 4,
+          textHeight + 4
+        );
+        
+        // Draw text
         ctx.fillStyle = measurement.color;
-        ctx.font = '12px Arial';
         ctx.fillText(
-          `${measurement.length.toFixed(2)}'`,
+          text,
           midPoint.x + 5,
           midPoint.y - 5
         );
       }
     });
 
-    // Draw current drawing
+    // Draw current drawing (será atualizado em tempo real via drawCurrentPath)
     if (drawingPoints.length > 1) {
-      ctx.strokeStyle = getToolColor(activeTool);
-      ctx.lineWidth = 2;
+      const currentColor = selectedColor || getToolColor(activeTool);
+      ctx.strokeStyle = currentColor;
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = 2;
       ctx.beginPath();
       ctx.moveTo(drawingPoints[0].x, drawingPoints[0].y);
 
@@ -609,10 +753,11 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
       }
 
       ctx.stroke();
+      ctx.shadowBlur = 0;
     }
 
     ctx.restore();
-  }, [measurements, drawingPoints, activeTool, zoom, pageDimensions]);
+  }, [measurements, drawingPoints, activeTool, zoom, zoomLevel, pageDimensions, selectedColor]);
 
   if (!pdfUrl) {
     return (
@@ -629,10 +774,10 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
   }
 
   return (
-    <div className='h-full flex flex-col'>
+    <div className='h-full w-full flex flex-col overflow-hidden'>
       {/* PDF Controls */}
       <div className='pdf-controls bg-card border-b border-border flex-shrink-0 w-full sticky top-0 z-10'>
-        <div className='flex flex-row items-center justify-between gap-2 sm:gap-4 md:gap-6 w-full px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4'>
+        <div className='flex flex-row items-center justify-between gap-1 sm:gap-2 md:gap-4 w-full px-1 sm:px-2 md:px-4 lg:px-6 py-1 sm:py-2 md:py-3 lg:py-4'>
           <div className='flex items-center space-x-2 sm:space-x-3 md:space-x-4 flex-shrink-0'>
             <Button
               variant='outline'
@@ -659,7 +804,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
 
       {/* PDF Viewer */}
       <div
-        className='pdf-viewer-container flex-1 overflow-auto bg-secondary/20 p-2 sm:p-4 md:p-6 min-h-0'
+        className='pdf-viewer-container flex-1 overflow-hidden bg-secondary/20 p-0 min-h-0 w-full h-full'
         ref={containerRef}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -674,10 +819,10 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
         }}
       >
         <div
-          className='relative bg-card shadow-lg mx-auto w-full'
+          className='relative bg-card shadow-lg mx-auto flex items-center justify-center'
           style={{
-            maxWidth: 'fit-content',
-            minHeight: '100%',
+            width: '100%',
+            height: '100%',
             transform: `scale(${zoomLevel}) translate(${panOffset.x}px, ${panOffset.y}px)`,
             transformOrigin: 'center',
             transition: isDragging ? 'none' : 'transform 0.1s ease-out',
@@ -691,9 +836,47 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
                   Nenhum PDF carregado
                 </p>
                 <p className='text-gray-500 dark:text-gray-400 text-sm sm:text-base'>
-                  Use o botão de upload para carregar um arquivo PDF
+                  Use o botão de upload para carregar um arquivo PDF ou imagem
                 </p>
               </div>
+            </div>
+          ) : fileType === 'image' ? (
+            <div className="relative flex items-center justify-center w-full h-full overflow-hidden">
+              <img
+                src={pdfUrl}
+                alt="Planta carregada"
+                className="object-contain"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                }}
+                onLoad={(e) => {
+                  const img = e.currentTarget;
+                  const dimensions = {
+                    width: img.naturalWidth,
+                    height: img.naturalHeight,
+                  };
+                  setPageDimensions(dimensions);
+                  setTotalPages(1);
+                  console.log('Imagem carregada com dimensões:', dimensions);
+                  
+                  // Calcular zoom inicial para caber na tela
+                  if (containerRef.current && dimensions.width > 0 && dimensions.height > 0) {
+                    const container = containerRef.current;
+                    const containerWidth = container.clientWidth;
+                    const containerHeight = container.clientHeight;
+                    
+                    const scaleX = containerWidth / dimensions.width;
+                    const scaleY = containerHeight / dimensions.height;
+                    const initialScale = Math.min(scaleX, scaleY, 1);
+                    
+                    if (initialScale < 1 && initialScale > 0) {
+                      setZoomLevel(initialScale);
+                    }
+                  }
+                }}
+              />
             </div>
           ) : (
             <Document
@@ -798,75 +981,86 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
                   </div>
                 </div>
               }
-              options={pdfOptions}
+              options={PDF_OPTIONS}
             >
-              <Page
-                pageNumber={currentPage}
-                scale={zoom}
-                onLoadSuccess={handlePageLoadSuccess}
-                onLoadError={error => {
-                  console.error('Erro ao carregar página:', error);
-                }}
-                loading={
-                  <div className='flex items-center justify-center w-full h-full min-h-[400px] p-8'>
-                    <div className='flex flex-col items-center gap-3'>
-                      <div className='animate-spin rounded-full h-10 w-10 border-b-2 border-red-600'></div>
-                      <p className='text-sm text-gray-600 dark:text-gray-400'>
-                        Carregando página...
-                      </p>
-                    </div>
-                  </div>
-                }
-                error={
-                  <div className='flex items-center justify-center w-full h-full min-h-[400px] p-6'>
-                    <div className='text-center w-full max-w-md mx-auto'>
-                      <div className='inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-50 dark:bg-amber-900/20 mb-3'>
-                        <AlertCircle className='w-6 h-6 text-amber-600 dark:text-amber-400' />
+              <div className="w-full h-full flex items-center justify-center overflow-hidden relative">
+                <Page
+                  pageNumber={currentPage}
+                  scale={zoom}
+                  onLoadSuccess={handlePageLoadSuccess}
+                  onLoadError={error => {
+                    console.error('Erro ao carregar página:', error);
+                  }}
+                  className="object-contain"
+                  renderTextLayer={true}
+                  renderAnnotationLayer={true}
+                  width={undefined}
+                  height={undefined}
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    width: 'auto',
+                    height: 'auto',
+                    objectFit: 'contain',
+                  }}
+                  loading={
+                    <div className='flex items-center justify-center w-full h-full min-h-[400px] p-8'>
+                      <div className='flex flex-col items-center gap-3'>
+                        <div className='animate-spin rounded-full h-10 w-10 border-b-2 border-red-600'></div>
+                        <p className='text-sm text-gray-600 dark:text-gray-400'>
+                          Carregando página...
+                        </p>
                       </div>
-                      <h4 className='text-base font-semibold text-gray-900 dark:text-gray-100 mb-1'>
-                        Erro ao carregar página
-                      </h4>
-                      <p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>
-                        Página {currentPage} de {totalPages || '...'}
-                      </p>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() => {
-                          const newPage = currentPage;
-                          setCurrentPage(1);
-                          setTimeout(() => setCurrentPage(newPage), 100);
-                        }}
-                      >
-                        <RefreshCw className='w-4 h-4 mr-2' />
-                        Tentar Novamente
-                      </Button>
                     </div>
-                  </div>
-                }
-              />
+                  }
+                  error={
+                    <div className='flex items-center justify-center w-full h-full min-h-[400px] p-6'>
+                      <div className='text-center w-full max-w-md mx-auto'>
+                        <div className='inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-50 dark:bg-amber-900/20 mb-3'>
+                          <AlertCircle className='w-6 h-6 text-amber-600 dark:text-amber-400' />
+                        </div>
+                        <h4 className='text-base font-semibold text-gray-900 dark:text-gray-100 mb-1'>
+                          Erro ao carregar página
+                        </h4>
+                        <p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>
+                          Página {currentPage} de {totalPages || '...'}
+                        </p>
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={() => {
+                            const newPage = currentPage;
+                            setCurrentPage(1);
+                            setTimeout(() => setCurrentPage(newPage), 100);
+                          }}
+                        >
+                          <RefreshCw className='w-4 h-4 mr-2' />
+                          Tentar Novamente
+                        </Button>
+                      </div>
+                    </div>
+                  }
+                />
+                {/* Overlay Canvas for Measurements */}
+                {pageDimensions.width > 0 && pageDimensions.height > 0 && fileType === 'pdf' && (
+                  <canvas
+                    ref={canvasRef}
+                    className='measurement-canvas absolute top-0 left-0'
+                    style={{
+                      width: `${pageDimensions.width * zoom * zoomLevel}px`,
+                      height: `${pageDimensions.height * zoom * zoomLevel}px`,
+                      cursor: activeTool ? 'crosshair' : 'default',
+                      pointerEvents: activeTool ? 'auto' : 'none',
+                      zIndex: 10,
+                    }}
+                    onMouseDown={handleCanvasMouseDown}
+                    onMouseMove={handleCanvasMouseMove}
+                    onMouseUp={handleCanvasMouseUp}
+                    onMouseLeave={() => setIsDrawing(false)}
+                  />
+                )}
+              </div>
             </Document>
-          )}
-
-          {/* Overlay Canvas for Measurements */}
-          {pageDimensions.width > 0 && pageDimensions.height > 0 && (
-            <canvas
-              ref={canvasRef}
-              className='measurement-canvas'
-              style={{
-                width: `${pageDimensions.width * zoom * zoomLevel}px`,
-                height: `${pageDimensions.height * zoom * zoomLevel}px`,
-                cursor: activeTool ? 'crosshair' : 'default',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                pointerEvents: activeTool ? 'auto' : 'none',
-              }}
-              onMouseDown={handleCanvasMouseDown}
-              onMouseMove={handleCanvasMouseMove}
-              onMouseUp={handleCanvasMouseUp}
-              onMouseLeave={() => setIsDrawing(false)}
-            />
           )}
         </div>
       </div>
