@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { useToast } from '@/components/ui/use-toast';
 
 export interface TakeoffMeasurement {
   id: string;

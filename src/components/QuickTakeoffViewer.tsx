@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -161,7 +161,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [_containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
 
   // Estado para controle de erro e retry
@@ -983,13 +983,6 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
                   renderAnnotationLayer={true}
                   width={undefined}
                   height={undefined}
-                  style={{
-                    maxWidth: '100%',
-                    maxHeight: '100%',
-                    width: 'auto',
-                    height: 'auto',
-                    objectFit: 'contain',
-                  }}
                   loading={
                     <div className='flex items-center justify-center w-full h-full min-h-[400px] p-8'>
                       <div className='flex flex-col items-center gap-3'>

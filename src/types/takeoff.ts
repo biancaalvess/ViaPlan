@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 export type MeasurementType = 'area' | 'distance' | 'count' | 'volume';
 
 export interface Point {
