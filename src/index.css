@@ -85,13 +85,14 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-secondary/20;
+  background: hsl(215 50% 15% / 0.5); /* #223148 com opacidade */
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary/30 rounded-full;
+  background: hsl(215 40% 25% / 0.6); /* #2f486d com opacidade */
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-primary/50;
+  background: hsl(215 40% 25% / 0.8); /* #2f486d mais opaco */
 }

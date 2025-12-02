@@ -45,7 +45,7 @@ const QuickTakeoffPage = () => {
   const [zoom, setZoom] = useState(1);
 
   // Custom hooks
-  const { currentPlant, loadPlantFromId } = usePlants();
+  const { loadPlantFromId } = usePlants();
   const { measurements, addMeasurement, deleteMeasurement } = useMeasurements();
   const { canUndo, undoLastAction, saveAction } = useActionHistory();
   const {
@@ -166,14 +166,16 @@ const QuickTakeoffPage = () => {
     {
       id: "select",
       name: "Selecionar",
-      description: "Navegar e selecionar medições",
+      description:
+        "Mover, redimensionar, apagar, agrupar e filtrar medições. Não mede, apenas edita.",
       icon: MousePointer2,
       needsConfig: false,
     },
     {
       id: "trench",
       name: "Trincheira Aberta",
-      description: "Medir trincheiras abertas",
+      description:
+        "Traçado (polilinha), largura e profundidade média ou variável, tipo de solo, cálculo de volume. Resultado: comprimento total + volume de escavação.",
       icon: Square,
       needsConfig: true,
       config: trenchConfig,
@@ -181,7 +183,8 @@ const QuickTakeoffPage = () => {
     {
       id: "bore-shot",
       name: "Perfuração Direcional",
-      description: "Medir perfurações direcionais",
+      description:
+        "Traçado (polilinha ou spline), raio mínimo de curvatura, ângulos de entrada/saída, profundidade mínima, diâmetros. Validações automáticas. Resultado: comprimento perfurado + raio mínimo atendido.",
       icon: Drill,
       needsConfig: true,
       config: boreShotConfig,
@@ -189,7 +192,8 @@ const QuickTakeoffPage = () => {
     {
       id: "hydro-excavation",
       name: "Hidroescavação",
-      description: "Medir escavações hidráulicas",
+      description:
+        "Traçado (reta ou polilinha), seção nominal (circular), profundidade, volume removido. Resultado: comprimento + volume de remoção.",
       icon: Droplet,
       needsConfig: true,
       config: hydroExcavationConfig,
@@ -197,7 +201,8 @@ const QuickTakeoffPage = () => {
     {
       id: "conduit",
       name: "Conduto",
-      description: "Medir trajetos de condutos",
+      description:
+        "Trajeto (polilinha), material (PVC, PEAD, aço), classe/SDR, diâmetro nominal, espessura, comprimento total. Extras: volume interno, peso estimado.",
       icon: Gauge,
       needsConfig: true,
       config: conduitConfig,
@@ -205,7 +210,8 @@ const QuickTakeoffPage = () => {
     {
       id: "vault",
       name: "Câmara/Buraco de Mão",
-      description: "Marcar câmaras e buracos de mão",
+      description:
+        "Tipo (poço de visita, caixa de passagem), dimensões (retangular/circular), profundidade, material/classe, quantidade. Resultado: contagem + volume.",
       icon: CheckSquare,
       needsConfig: true,
       config: vaultConfig,
@@ -213,14 +219,16 @@ const QuickTakeoffPage = () => {
     {
       id: "yardage",
       name: "Área",
-      description: "Calcular medições de área",
+      description:
+        "Polígono, área total, perímetro e profundidade opcional para volume. Resultado: área em m² e perímetro.",
       icon: Layers,
       needsConfig: false,
     },
     {
       id: "note",
       name: "Nota",
-      description: "Adicionar notas e anotações",
+      description:
+        "Texto livre, nome/autor, data, localização (x,y) e vinculação a objeto. Metadado para documentação.",
       icon: FileText,
       needsConfig: false,
     },
@@ -243,20 +251,24 @@ const QuickTakeoffPage = () => {
   );
 
   return (
-    <div className="h-screen flex flex-col bg-[#223148] text-[#f3eae0]">
+    <div className="h-screen flex flex-col bg-[#223148] text-[#f3eae0] overflow-hidden">
       {/* Top Header */}
-      <div className="bg-[#223148] border-b border-[#2f486d] px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <h1 className="text-xl font-semibold text-[#f3eae0]">VIAPLAN</h1>
+      <div className="bg-[#223148] border-b border-[#2f486d] px-3 sm:px-4 md:px-6 py-3 sm:py-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 md:gap-6">
+          <h1 className="text-lg sm:text-xl font-semibold text-[#f3eae0]">
+            VIAPLAN
+          </h1>
 
           <div className="[&_button]:bg-[#2f486d] [&_button]:border-[#3d5a7d] [&_button]:text-[#f3eae0] [&_button]:hover:bg-[#3d5a7d]">
             <PDFUpload onFileSelect={handleFileSelect} />
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-sm text-[#f3eae0]/80">Escala:</span>
+            <span className="text-xs sm:text-sm text-[#f3eae0]/80">
+              Escala:
+            </span>
             <Select value={scale} onValueChange={setScale}>
-              <SelectTrigger className="w-40 bg-[#2f486d] border-[#3d5a7d] text-[#f3eae0]">
+              <SelectTrigger className="w-28 sm:w-36 md:w-40 bg-[#2f486d] border-[#3d5a7d] text-[#f3eae0] text-xs sm:text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-[#2f486d] border-[#3d5a7d]">
@@ -300,32 +312,34 @@ const QuickTakeoffPage = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
             variant="outline"
             size="sm"
             onClick={handleExportCSV}
-            className="bg-[#1a4a25] border-[#2a5a35] text-[#DAE2CB] hover:bg-[#2a5a35]"
+            className="bg-[#1a4a25] border-[#2a5a35] text-[#DAE2CB] hover:bg-[#2a5a35] text-xs sm:text-sm"
           >
-            <Download className="h-4 w-4 mr-2" />
-            Exportar CSV
+            <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Exportar CSV</span>
+            <span className="sm:hidden">CSV</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleExportJSON}
-            className="bg-[#2f486d] border-[#3d5a7d] text-[#f3eae0] hover:bg-[#3d5a7d]"
+            className="bg-[#2f486d] border-[#3d5a7d] text-[#f3eae0] hover:bg-[#3d5a7d] text-xs sm:text-sm"
           >
-            <Download className="h-4 w-4 mr-2" />
-            Exportar JSON
+            <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Exportar JSON</span>
+            <span className="sm:hidden">JSON</span>
           </Button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Central Content Area */}
-        <div className="flex-1 bg-[#223148] flex items-center justify-center">
+        <div className="flex-1 bg-[#223148] flex items-center justify-center min-w-0">
           {pdfUrl ? (
             <QuickTakeoffViewer
               pdfUrl={pdfUrl}
@@ -362,16 +376,16 @@ const QuickTakeoffPage = () => {
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-80 bg-[#223148] border-l border-[#2f486d] flex flex-col">
+        <div className="w-full lg:w-80 xl:w-96 bg-[#223148] border-t lg:border-t-0 lg:border-l border-[#2f486d] flex flex-col overflow-y-auto max-h-[50vh] lg:max-h-none">
           {/* Measurement Tools */}
-          <div className="p-4 border-b border-[#2f486d]">
-            <h2 className="text-sm font-semibold text-[#f3eae0] mb-3">
+          <div className="p-2 sm:p-3 border-b border-[#2f486d]">
+            <h2 className="text-xs font-semibold text-[#f3eae0] mb-1.5 sm:mb-2">
               Ferramentas de Medição
             </h2>
-            <p className="text-xs text-[#f3eae0]/60 mb-4">
+            <p className="text-[10px] sm:text-xs text-[#f3eae0]/60 mb-2 sm:mb-3">
               Selecione uma ferramenta para começar a medir
             </p>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {tools.map((tool) => {
                 const Icon = tool.icon;
                 const isActive = activeTool === tool.id;
@@ -381,26 +395,26 @@ const QuickTakeoffPage = () => {
                   <button
                     key={tool.id}
                     onClick={() => handleToolSelectWithConfig(tool.id)}
-                    className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                    className={`w-full text-left p-2 rounded-md border transition-colors ${
                       isActive
                         ? "bg-[#2f486d] border-[#3d5a7d]"
                         : "bg-[#1a2538] border-[#2f486d] hover:bg-[#2f486d]"
                     }`}
                   >
                     <div className="flex items-start gap-3">
-                      <Icon className="h-5 w-5 text-[#f3eae0] mt-0.5 flex-shrink-0" />
+                      <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#f3eae0] mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium text-[#f3eae0]">
+                        <div className="flex items-center justify-between mb-0.5 gap-1.5">
+                          <span className="text-[11px] sm:text-xs font-medium text-[#f3eae0] truncate">
                             {tool.name}
                           </span>
                           {tool.needsConfig && !isConfigured && (
-                            <Badge className="bg-[#d2c7b8]/30 text-[#d2c7b8] border-[#d2c7b8]/50 text-xs">
+                            <Badge className="bg-[#d2c7b8]/30 text-[#d2c7b8] border-[#d2c7b8]/50 text-[9px] px-1 py-0 flex-shrink-0">
                               Não configurado
                             </Badge>
                           )}
                         </div>
-                        <p className="text-xs text-[#f3eae0]/60">
+                        <p className="text-[10px] text-[#f3eae0]/60 line-clamp-2 leading-tight">
                           {tool.description}
                         </p>
                       </div>
@@ -412,27 +426,27 @@ const QuickTakeoffPage = () => {
           </div>
 
           {/* Active Configurations */}
-          <div className="p-4 border-b border-[#2f486d]">
-            <h2 className="text-sm font-semibold text-[#f3eae0] mb-3">
+          <div className="p-2 sm:p-3 border-b border-[#2f486d]">
+            <h2 className="text-xs font-semibold text-[#f3eae0] mb-1.5 sm:mb-2">
               Configurações Ativas
             </h2>
             {activeConfigs.length === 0 ? (
-              <p className="text-xs text-[#d2c7b8]/60 italic">
+              <p className="text-[10px] sm:text-xs text-[#d2c7b8]/60 italic">
                 Nenhuma configuração ativa
               </p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {activeConfigs.map((config, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-2 bg-[#2f486d] rounded text-sm text-[#f3eae0]"
+                    className="flex items-center justify-between p-1.5 bg-[#2f486d] rounded text-[11px] sm:text-xs text-[#f3eae0]"
                   >
                     <span>{config.name}</span>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={config.onClear}
-                      className="h-6 px-2 text-xs text-[#d2c7b8] hover:text-[#f3eae0]"
+                      className="h-5 w-5 p-0 text-[#d2c7b8] hover:text-[#f3eae0] text-sm"
                     >
                       ×
                     </Button>
@@ -443,28 +457,28 @@ const QuickTakeoffPage = () => {
           </div>
 
           {/* Measurements */}
-          <div className="flex-1 p-4 overflow-y-auto">
-            <h2 className="text-sm font-semibold text-[#f3eae0] mb-3">
+          <div className="p-2 sm:p-3">
+            <h2 className="text-xs font-semibold text-[#f3eae0] mb-1.5 sm:mb-2">
               Medições
             </h2>
             {measurements.length === 0 ? (
-              <p className="text-xs text-[#d2c7b8]/60 italic">
+              <p className="text-[10px] sm:text-xs text-[#d2c7b8]/60 italic">
                 Ainda não há medições. Selecione uma ferramenta e comece a medir
                 no plano.
               </p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {measurements.map((measurement) => (
                   <div
                     key={measurement.id}
-                    className="p-3 bg-[#2f486d] rounded-lg border border-[#3d5a7d]"
+                    className="p-1.5 sm:p-2 bg-[#2f486d] rounded-md border border-[#3d5a7d]"
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-[#f3eae0]">
+                    <div className="flex items-center justify-between gap-1.5">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] sm:text-xs font-medium text-[#f3eae0] truncate">
                           {measurement.label}
                         </p>
-                        <p className="text-xs text-[#d2c7b8]">
+                        <p className="text-[10px] text-[#d2c7b8]">
                           {measurement.type}
                         </p>
                       </div>
@@ -472,7 +486,7 @@ const QuickTakeoffPage = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteMeasurement(measurement.id)}
-                        className="text-[#d2c7b8] hover:text-[#f3eae0]"
+                        className="h-5 w-5 p-0 text-[#d2c7b8] hover:text-[#f3eae0] text-sm"
                       >
                         ×
                       </Button>

@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Separator } from '@/components/ui/separator';
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 
 export interface VaultConfig {
   dimensions?: {
@@ -125,46 +125,55 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
   };
 
   const backfillTypes = [
-    'Native Soil',
-    'Flowable Fill',
-    'Sand',
-    'Gravel',
-    'Crushed Stone',
-    'Custom',
+    "Solo Nativo",
+    "Reaterro Fluido",
+    "Areia",
+    "Cascalho",
+    "Pedra Britada",
+    "Personalizado",
   ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className='max-w-md'>
+      <DialogContent className="max-w-[95vw] sm:max-w-md md:max-w-lg w-full mx-2 sm:mx-4">
         <DialogHeader>
-          <DialogTitle>Configure Vault/Handhole</DialogTitle>
+          <div className="flex justify-between items-center">
+            <DialogTitle>Configurar Câmara/Buraco de Mão</DialogTitle>
+            <Button
+              variant="outline"
+              onClick={() => setConfig({})}
+              className="text-sm"
+            >
+              Desfazer
+            </Button>
+          </div>
         </DialogHeader>
 
-        <div className='space-y-6'>
+        <div className="space-y-6 mt-4">
           {/* Dimensions */}
-          <div className='space-y-4'>
-            <div className='flex items-center space-x-2'>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
               <Checkbox
-                id='include-dimensions'
+                id="include-dimensions"
                 checked={includeDimensions}
-                onCheckedChange={checked =>
+                onCheckedChange={(checked) =>
                   setIncludeDimensions(checked as boolean)
                 }
               />
-              <Label htmlFor='include-dimensions'>Vault Dimensions</Label>
+              <Label htmlFor="include-dimensions">Dimensões da Câmara</Label>
             </div>
 
             {includeDimensions && (
-              <div className='grid grid-cols-3 gap-4 pl-6'>
+              <div className="grid grid-cols-3 gap-4 pl-6">
                 <div>
-                  <Label htmlFor='vault-length'>Length (ft)</Label>
+                  <Label htmlFor="vault-length">Comprimento (ft)</Label>
                   <Input
-                    id='vault-length'
-                    type='number'
-                    step='0.1'
+                    id="vault-length"
+                    type="number"
+                    step="0.1"
                     value={config.dimensions?.length || 0}
-                    onChange={e =>
-                      setConfig(prev => ({
+                    onChange={(e) =>
+                      setConfig((prev) => ({
                         ...prev,
                         dimensions: {
                           length: parseFloat(e.target.value) || 0,
@@ -176,14 +185,14 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
                   />
                 </div>
                 <div>
-                  <Label htmlFor='vault-width'>Width (ft)</Label>
+                  <Label htmlFor="vault-width">Largura (ft)</Label>
                   <Input
-                    id='vault-width'
-                    type='number'
-                    step='0.1'
+                    id="vault-width"
+                    type="number"
+                    step="0.1"
                     value={config.dimensions?.width || 0}
-                    onChange={e =>
-                      setConfig(prev => ({
+                    onChange={(e) =>
+                      setConfig((prev) => ({
                         ...prev,
                         dimensions: {
                           length: prev.dimensions?.length || 0,
@@ -195,14 +204,14 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
                   />
                 </div>
                 <div>
-                  <Label htmlFor='vault-depth'>Depth (ft)</Label>
+                  <Label htmlFor="vault-depth">Profundidade (ft)</Label>
                   <Input
-                    id='vault-depth'
-                    type='number'
-                    step='0.1'
+                    id="vault-depth"
+                    type="number"
+                    step="0.1"
                     value={config.dimensions?.depth || 0}
-                    onChange={e =>
-                      setConfig(prev => ({
+                    onChange={(e) =>
+                      setConfig((prev) => ({
                         ...prev,
                         dimensions: {
                           length: prev.dimensions?.length || 0,
@@ -220,29 +229,29 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
           <Separator />
 
           {/* Hole Size */}
-          <div className='space-y-4'>
-            <div className='flex items-center space-x-2'>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
               <Checkbox
-                id='include-hole-size'
+                id="include-hole-size"
                 checked={includeHoleSize}
-                onCheckedChange={checked =>
+                onCheckedChange={(checked) =>
                   setIncludeHoleSize(checked as boolean)
                 }
               />
-              <Label htmlFor='include-hole-size'>Hole Size</Label>
+              <Label htmlFor="include-hole-size">Tamanho do Buraco</Label>
             </div>
 
             {includeHoleSize && (
-              <div className='grid grid-cols-3 gap-4 pl-6'>
+              <div className="grid grid-cols-3 gap-4 pl-6">
                 <div>
-                  <Label htmlFor='hole-length'>Comprimento (ft)</Label>
+                  <Label htmlFor="hole-length">Comprimento (ft)</Label>
                   <Input
-                    id='hole-length'
-                    type='number'
-                    step='0.1'
+                    id="hole-length"
+                    type="number"
+                    step="0.1"
                     value={config.holeSize?.length || 0}
-                    onChange={e =>
-                      setConfig(prev => ({
+                    onChange={(e) =>
+                      setConfig((prev) => ({
                         ...prev,
                         holeSize: {
                           length: parseFloat(e.target.value) || 0,
@@ -254,14 +263,14 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
                   />
                 </div>
                 <div>
-                  <Label htmlFor='hole-width'>Largura (ft)</Label>
+                  <Label htmlFor="hole-width">Largura (ft)</Label>
                   <Input
-                    id='hole-width'
-                    type='number'
-                    step='0.1'
+                    id="hole-width"
+                    type="number"
+                    step="0.1"
                     value={config.holeSize?.width || 0}
-                    onChange={e =>
-                      setConfig(prev => ({
+                    onChange={(e) =>
+                      setConfig((prev) => ({
                         ...prev,
                         holeSize: {
                           length: prev.holeSize?.length || 0,
@@ -273,14 +282,14 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
                   />
                 </div>
                 <div>
-                  <Label htmlFor='hole-depth'>Profundidade (ft)</Label>
+                  <Label htmlFor="hole-depth">Profundidade (ft)</Label>
                   <Input
-                    id='hole-depth'
-                    type='number'
-                    step='0.1'
+                    id="hole-depth"
+                    type="number"
+                    step="0.1"
                     value={config.holeSize?.depth || 0}
-                    onChange={e =>
-                      setConfig(prev => ({
+                    onChange={(e) =>
+                      setConfig((prev) => ({
                         ...prev,
                         holeSize: {
                           length: prev.holeSize?.length || 0,
@@ -298,30 +307,30 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
           <Separator />
 
           {/* Volumes */}
-          <div className='space-y-4'>
-            <h3 className='text-sm font-medium text-gray-900'>Volumes</h3>
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-gray-900">Volumes (CY)</h3>
 
-            <div className='space-y-3'>
-              <div className='flex items-center space-x-2'>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
                 <Checkbox
-                  id='include-spoil-volume'
+                  id="include-spoil-volume"
                   checked={includeSpoilVolume}
-                  onCheckedChange={checked =>
+                  onCheckedChange={(checked) =>
                     setIncludeSpoilVolume(checked as boolean)
                   }
                 />
-                <Label htmlFor='include-spoil-volume'>
-                  Excavation Volume (CY)
+                <Label htmlFor="include-spoil-volume">
+                  Volume de Escavação (CY)
                 </Label>
               </div>
               {includeSpoilVolume && (
-                <div className='pl-6'>
+                <div className="pl-6">
                   <Input
-                    type='number'
-                    step='0.1'
+                    type="number"
+                    step="0.1"
                     value={config.spoilVolumeCY || 0}
-                    onChange={e =>
-                      setConfig(prev => ({
+                    onChange={(e) =>
+                      setConfig((prev) => ({
                         ...prev,
                         spoilVolumeCY: parseFloat(e.target.value) || 0,
                       }))
@@ -330,26 +339,26 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
                 </div>
               )}
 
-              <div className='flex items-center space-x-2'>
+              <div className="flex items-center space-x-2">
                 <Checkbox
-                  id='include-asphalt-removal'
+                  id="include-asphalt-removal"
                   checked={includeAsphaltRemoval}
-                  onCheckedChange={checked =>
+                  onCheckedChange={(checked) =>
                     setIncludeAsphaltRemoval(checked as boolean)
                   }
                 />
-                <Label htmlFor='include-asphalt-removal'>
-                  Asphalt Removal (CY)
+                <Label htmlFor="include-asphalt-removal">
+                  Remoção de Asfalto (CY)
                 </Label>
               </div>
               {includeAsphaltRemoval && (
-                <div className='pl-6'>
+                <div className="pl-6">
                   <Input
-                    type='number'
-                    step='0.1'
+                    type="number"
+                    step="0.1"
                     value={config.asphaltRemovalCY || 0}
-                    onChange={e =>
-                      setConfig(prev => ({
+                    onChange={(e) =>
+                      setConfig((prev) => ({
                         ...prev,
                         asphaltRemovalCY: parseFloat(e.target.value) || 0,
                       }))
@@ -358,26 +367,26 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
                 </div>
               )}
 
-              <div className='flex items-center space-x-2'>
+              <div className="flex items-center space-x-2">
                 <Checkbox
-                  id='include-concrete-removal'
+                  id="include-concrete-removal"
                   checked={includeConcreteRemoval}
-                  onCheckedChange={checked =>
+                  onCheckedChange={(checked) =>
                     setIncludeConcreteRemoval(checked as boolean)
                   }
                 />
-                <Label htmlFor='include-concrete-removal'>
-                  Concrete Removal (CY)
+                <Label htmlFor="include-concrete-removal">
+                  Remoção de Concreto (CY)
                 </Label>
               </div>
               {includeConcreteRemoval && (
-                <div className='pl-6'>
+                <div className="pl-6">
                   <Input
-                    type='number'
-                    step='0.1'
+                    type="number"
+                    step="0.1"
                     value={config.concreteRemovalCY || 0}
-                    onChange={e =>
-                      setConfig(prev => ({
+                    onChange={(e) =>
+                      setConfig((prev) => ({
                         ...prev,
                         concreteRemovalCY: parseFloat(e.target.value) || 0,
                       }))
@@ -386,26 +395,26 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
                 </div>
               )}
 
-              <div className='flex items-center space-x-2'>
+              <div className="flex items-center space-x-2">
                 <Checkbox
-                  id='include-asphalt-restoration'
+                  id="include-asphalt-restoration"
                   checked={includeAsphaltRestoration}
-                  onCheckedChange={checked =>
+                  onCheckedChange={(checked) =>
                     setIncludeAsphaltRestoration(checked as boolean)
                   }
                 />
-                <Label htmlFor='include-asphalt-restoration'>
-                  Asphalt Restoration (CY)
+                <Label htmlFor="include-asphalt-restoration">
+                  Restauração de Asfalto (CY)
                 </Label>
               </div>
               {includeAsphaltRestoration && (
-                <div className='pl-6'>
+                <div className="pl-6">
                   <Input
-                    type='number'
-                    step='0.1'
+                    type="number"
+                    step="0.1"
                     value={config.asphaltRestorationCY || 0}
-                    onChange={e =>
-                      setConfig(prev => ({
+                    onChange={(e) =>
+                      setConfig((prev) => ({
                         ...prev,
                         asphaltRestorationCY: parseFloat(e.target.value) || 0,
                       }))
@@ -414,26 +423,26 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
                 </div>
               )}
 
-              <div className='flex items-center space-x-2'>
+              <div className="flex items-center space-x-2">
                 <Checkbox
-                  id='include-concrete-restoration'
+                  id="include-concrete-restoration"
                   checked={includeConcreteRestoration}
-                  onCheckedChange={checked =>
+                  onCheckedChange={(checked) =>
                     setIncludeConcreteRestoration(checked as boolean)
                   }
                 />
-                <Label htmlFor='include-concrete-restoration'>
-                  Concrete Restoration (CY)
+                <Label htmlFor="include-concrete-restoration">
+                  Restauração de Concreto (CY)
                 </Label>
               </div>
               {includeConcreteRestoration && (
-                <div className='pl-6'>
+                <div className="pl-6">
                   <Input
-                    type='number'
-                    step='0.1'
+                    type="number"
+                    step="0.1"
                     value={config.concreteRestorationCY || 0}
-                    onChange={e =>
-                      setConfig(prev => ({
+                    onChange={(e) =>
+                      setConfig((prev) => ({
                         ...prev,
                         concreteRestorationCY: parseFloat(e.target.value) || 0,
                       }))
@@ -442,35 +451,35 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
                 </div>
               )}
 
-              <div className='flex items-center space-x-2'>
+              <div className="flex items-center space-x-2">
                 <Checkbox
-                  id='include-backfill'
+                  id="include-backfill"
                   checked={includeBackfill}
-                  onCheckedChange={checked =>
+                  onCheckedChange={(checked) =>
                     setIncludeBackfill(checked as boolean)
                   }
                 />
-                <Label htmlFor='include-backfill'>Backfill (CY)</Label>
+                <Label htmlFor="include-backfill">Reaterro (CY)</Label>
               </div>
               {includeBackfill && (
-                <div className='space-y-3 pl-6'>
+                <div className="space-y-3 pl-6">
                   <Input
-                    type='number'
-                    step='0.1'
+                    type="number"
+                    step="0.1"
                     value={config.backfillCY || 0}
-                    onChange={e =>
-                      setConfig(prev => ({
+                    onChange={(e) =>
+                      setConfig((prev) => ({
                         ...prev,
                         backfillCY: parseFloat(e.target.value) || 0,
                       }))
                     }
                   />
                   <div>
-                    <Label htmlFor='backfill-type'>Backfill Type</Label>
+                    <Label htmlFor="backfill-type">Tipo de Reaterro</Label>
                     <Select
-                      value={config.backfillType || 'Native Soil'}
-                      onChange={e =>
-                        setConfig(prev => ({
+                      value={config.backfillType || "Solo Nativo"}
+                      onChange={(e) =>
+                        setConfig((prev) => ({
                           ...prev,
                           backfillType: e.target.value,
                         }))
@@ -480,7 +489,7 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {backfillTypes.map(type => (
+                        {backfillTypes.map((type) => (
                           <SelectItem key={type} value={type}>
                             {type}
                           </SelectItem>
@@ -496,30 +505,30 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
           <Separator />
 
           {/* Traffic Rated */}
-          <div className='flex items-center space-x-2'>
+          <div className="flex items-center space-x-2">
             <Checkbox
-              id='traffic-rated'
+              id="traffic-rated"
               checked={config.trafficRated || false}
-              onCheckedChange={checked =>
-                setConfig(prev => ({
+              onCheckedChange={(checked) =>
+                setConfig((prev) => ({
                   ...prev,
                   trafficRated: checked as boolean,
                 }))
               }
             />
-            <Label htmlFor='traffic-rated'>Traffic Rated</Label>
+            <Label htmlFor="traffic-rated">Classificado para Tráfego</Label>
           </div>
         </div>
 
-        <div className='flex justify-end space-x-2 pt-4'>
-          <Button variant='outline' onClick={onClose}>
-            Cancel
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
           </Button>
           <Button
             onClick={handleConfirm}
-            className='bg-red-600 hover:bg-red-700'
+            className="bg-[#2f486d] hover:bg-[#3d5a7d] text-[#f3eae0]"
           >
-            Confirm
+            Confirmar
           </Button>
         </div>
       </DialogContent>
