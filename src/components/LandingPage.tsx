@@ -28,7 +28,7 @@ const LandingPage = () => {
         </div>
 
         {/* Informações Básicas */}
-        <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8 md:mb-10">
+        <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-10">
           {/* Para que funciona */}
           <div className="bg-[#2f486d]/40 backdrop-blur-sm border border-[#3d5a7d] rounded-lg p-3 md:p-4">
             <h2 className="text-sm md:text-base font-semibold text-[#f3eae0] mb-2">
@@ -53,6 +53,18 @@ const LandingPage = () => {
               <li>Exporte os resultados</li>
             </ol>
           </div>
+
+          {/* Sobre o Projeto */}
+          <div className="bg-[#2f486d]/40 backdrop-blur-sm border border-[#3d5a7d] rounded-lg p-3 md:p-4 md:col-span-2 lg:col-span-1">
+            <h2 className="text-sm md:text-base font-semibold text-[#f3eae0] mb-2">
+              Sobre o Projeto
+            </h2>
+            <p className="text-xs md:text-sm text-[#d2c7b8] leading-relaxed">
+              Projeto desenvolvido para fins estudantis e evolução profissional.
+              Caso encontre algo a ser melhorado ou ajustado, por favor não
+              hesite em entrar em contato!
+            </p>
+          </div>
         </div>
 
         {/* CTA Button */}
@@ -69,7 +81,7 @@ const LandingPage = () => {
       </div>
 
       {/* Footer */}
-      <footer className="absolute bottom-0 left-0 right-0 py-4 px-4 md:px-6">
+      <footer className="absolute bottom-0 left-0 right-0 py-4 px-4 md:px-6 z-10">
         <div className="max-w-4xl mx-auto text-center">
           <a
             href="https://github.com/biancaalvess"

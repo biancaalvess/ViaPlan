@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   ZoomIn,
@@ -64,6 +64,12 @@ const QuickTakeoffPage = () => {
   const { measurements, addMeasurement, deleteMeasurement, clearMeasurements } =
     useMeasurements();
   const { canUndo, undoLastAction, saveAction } = useActionHistory();
+  const measurementsRef = useRef(measurements);
+  
+  // Atualizar ref quando measurements mudar
+  useEffect(() => {
+    measurementsRef.current = measurements;
+  }, [measurements]);
   const {
     activeTool,
     trenchConfig,
@@ -211,16 +217,43 @@ const QuickTakeoffPage = () => {
   };
 
   const handleAddMeasurement = (measurement: any) => {
-    saveAction("measurement", { action: "add", measurement });
+    // Salvar o comprimento atual antes de adicionar
+    const prevLength = measurementsRef.current.length;
+    // Adicionar a medição
     addMeasurement(measurement);
+    // Salvar a ação com o comprimento anterior para referência
+    saveAction("measurement", { action: "add", prevLength });
   };
 
   const handleDeleteMeasurement = (id: string) => {
-    deleteMeasurement(id);
+    const measurementToDelete = measurementsRef.current.find(m => m.id === id);
+    if (measurementToDelete) {
+      saveAction("measurement", { action: "delete", measurement: measurementToDelete });
+      deleteMeasurement(id);
+    }
   };
 
   const handleUndo = () => {
-    undoLastAction();
+    const lastAction = undoLastAction();
+    if (!lastAction) return;
+
+    if (lastAction.type === "measurement") {
+      const { action, measurement, prevLength } = lastAction.data;
+      if (action === "add") {
+        // Desfazer adição: remover a última medição adicionada
+        const currentMeasurements = measurementsRef.current;
+        // Se temos prevLength, remover a medição que está na posição prevLength
+        // Caso contrário, remover a última
+        if (currentMeasurements.length > (prevLength || 0)) {
+          const measurementToRemove = currentMeasurements[currentMeasurements.length - 1];
+          deleteMeasurement(measurementToRemove.id);
+        }
+      } else if (action === "delete" && measurement) {
+        // Desfazer remoção: restaurar a medição (sem o ID para que seja gerado novo)
+        const { id, ...measurementWithoutId } = measurement;
+        addMeasurement(measurementWithoutId);
+      }
+    }
   };
 
   const handleExportCSV = () => {

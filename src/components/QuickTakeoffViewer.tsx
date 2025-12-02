@@ -373,14 +373,25 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // O canvas está dentro de um container com transform, então precisamos
-    // calcular as coordenadas relativas ao canvas, considerando apenas o zoom
+    // Calcular coordenadas considerando o posicionamento do canvas
     const rect = canvas.getBoundingClientRect();
     const scale = zoom * zoomLevel;
-    const x = (e.clientX - rect.left) / scale;
-    const y = (e.clientY - rect.top) / scale;
+    
+    // Para imagens, o canvas está centralizado, então precisamos calcular a partir do centro
+    let x, y;
+    if (fileType === 'image') {
+      // Para imagens, o canvas está centralizado com transform translate
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      x = (e.clientX - centerX) / scale + pageDimensions.width / 2;
+      y = (e.clientY - centerY) / scale + pageDimensions.height / 2;
+    } else {
+      // Para PDFs, cálculo normal
+      x = (e.clientX - rect.left) / scale;
+      y = (e.clientY - rect.top) / scale;
+    }
 
-    console.log('Mouse down at:', { x, y, activeTool, scale, zoom, zoomLevel, rect });
+    console.log('Mouse down at:', { x, y, activeTool, scale, zoom, zoomLevel, rect, fileType });
     setIsDrawing(true);
     setDrawingPoints([{ x, y }]);
   };
@@ -391,12 +402,23 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // O canvas está dentro de um container com transform, então precisamos
-    // calcular as coordenadas relativas ao canvas, considerando apenas o zoom
+    // Calcular coordenadas considerando o posicionamento do canvas
     const rect = canvas.getBoundingClientRect();
     const scale = zoom * zoomLevel;
-    const x = (e.clientX - rect.left) / scale;
-    const y = (e.clientY - rect.top) / scale;
+    
+    // Para imagens, o canvas está centralizado, então precisamos calcular a partir do centro
+    let x, y;
+    if (fileType === 'image') {
+      // Para imagens, o canvas está centralizado com transform translate
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      x = (e.clientX - centerX) / scale + pageDimensions.width / 2;
+      y = (e.clientY - centerY) / scale + pageDimensions.height / 2;
+    } else {
+      // Para PDFs, cálculo normal
+      x = (e.clientX - rect.left) / scale;
+      y = (e.clientY - rect.top) / scale;
+    }
 
     setDrawingPoints(prev => {
       const newPoints = [...prev, { x, y }];
@@ -828,10 +850,11 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
               </div>
             </div>
           ) : fileType === 'image' ? (
-            <div className="relative flex items-center justify-center w-full h-full overflow-hidden">
+            <div className="relative flex items-center justify-center w-full h-full overflow-hidden" ref={containerRef}>
               <img
                 src={pdfUrl}
                 alt="Planta carregada"
+                id="takeoff-image"
                 className="object-contain"
                 style={{
                   width: '100%',
@@ -864,6 +887,27 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
                   }
                 }}
               />
+              {/* Overlay Canvas for Measurements - Imagens */}
+              {pageDimensions.width > 0 && pageDimensions.height > 0 && (
+                <canvas
+                  ref={canvasRef}
+                  className='measurement-canvas absolute'
+                  style={{
+                    width: `${pageDimensions.width * zoom * zoomLevel}px`,
+                    height: `${pageDimensions.height * zoom * zoomLevel}px`,
+                    cursor: activeTool ? 'crosshair' : 'default',
+                    pointerEvents: activeTool ? 'auto' : 'none',
+                    zIndex: 10,
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                  onMouseDown={handleCanvasMouseDown}
+                  onMouseMove={handleCanvasMouseMove}
+                  onMouseUp={handleCanvasMouseUp}
+                  onMouseLeave={() => setIsDrawing(false)}
+                />
+              )}
             </div>
           ) : (
             <Document
@@ -1022,7 +1066,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
                   }
                 />
                 {/* Overlay Canvas for Measurements */}
-                {pageDimensions.width > 0 && pageDimensions.height > 0 && fileType === 'pdf' && (
+                {pageDimensions.width > 0 && pageDimensions.height > 0 && (
                   <canvas
                     ref={canvasRef}
                     className='measurement-canvas absolute top-0 left-0'
