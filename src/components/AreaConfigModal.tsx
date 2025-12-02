@@ -216,3 +216,4 @@ const AreaConfigModal: React.FC<AreaConfigModalProps> = ({
 };
 
 export default AreaConfigModal;
+

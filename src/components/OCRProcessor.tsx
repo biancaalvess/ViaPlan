@@ -26,15 +26,15 @@ class OCRProcessor {
 
     try {
       this.worker = await createWorker({
-        logger: m => {
+        logger: (m: any) => {
           if (m.status === 'initializing tesseract') {
             console.log('Initializing OCR engine...');
           }
         }
-      });
+      } as any);
 
-      await this.worker.loadLanguage(options.language || 'eng');
-      await this.worker.initialize(options.language || 'eng');
+      await (this.worker as any).loadLanguage(options.language || 'eng');
+      await (this.worker as any).initialize(options.language || 'eng');
       
       if (options.quality === 'accurate') {
         await this.worker.setParameters({
@@ -103,7 +103,22 @@ class OCRProcessor {
         throw new Error('OCR worker not initialized');
       }
 
-      const result = await this.worker.recognize(imageData);
+      // Convert ImageData to HTMLCanvasElement if needed
+      let imageInput: HTMLImageElement | HTMLCanvasElement | File;
+      if (imageData instanceof ImageData) {
+        const canvas = document.createElement('canvas');
+        canvas.width = imageData.width;
+        canvas.height = imageData.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.putImageData(imageData, 0, 0);
+        }
+        imageInput = canvas;
+      } else {
+        imageInput = imageData;
+      }
+
+      const result = await (this.worker as any).recognize(imageInput);
       const processingTime = Date.now() - startTime;
 
       const ocrResult: OCRResult = {

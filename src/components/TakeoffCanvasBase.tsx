@@ -166,6 +166,14 @@ export const TakeoffCanvasBase: React.FC<TakeoffCanvasBaseProps> = ({
         return 'area';
       case 'conduit':
         return 'distance';
+      case 'yardage':
+        return 'area';
+      case 'concrete':
+        return 'area';
+      case 'asphalt':
+        return 'area';
+      case 'notes':
+        return 'count';
       default:
         return 'distance';
     }

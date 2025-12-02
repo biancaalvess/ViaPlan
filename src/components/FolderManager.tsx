@@ -203,11 +203,12 @@ export function FolderManager({ projectId, onFolderSelect, selectedFolderId, cla
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">Pastas</CardTitle>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="h-8">
-                  <FolderPlus className="h-4 w-4 mr-2" />
-                  Nova Pasta
-                </Button>
+              <DialogTrigger
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-ring h-8 px-3 py-1.5 text-sm"
+              >
+                <FolderPlus className="h-4 w-4 mr-2" />
+                Nova Pasta
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>

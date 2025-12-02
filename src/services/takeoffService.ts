@@ -27,55 +27,43 @@ class TakeoffService {
       name: takeoff.name || '',
       description: takeoff.description || '',
       status: takeoff.status || 'draft',
-      measurements: takeoff.measurements ? takeoff.measurements.map((m: any) => this.mapMeasurementData(m)) : [],
-      summary: takeoff.summary || this.createEmptySummary(),
       created_by: takeoff.created_by || takeoff.createdBy || '',
-      updated_by: takeoff.updated_by || takeoff.updatedBy || '',
-      approved_by: takeoff.approved_by || takeoff.approvedBy,
-      approved_at: takeoff.approved_at || takeoff.approvedAt,
-      notes: takeoff.notes || '',
-      version: takeoff.version || 1,
+      assigned_to: takeoff.assigned_to || takeoff.assignedTo || [],
       created_at: takeoff.created_at || takeoff.createdAt || new Date().toISOString(),
-      updated_at: takeoff.updated_at || takeoff.updatedAt || new Date().toISOString()
+      updated_at: takeoff.updated_at || takeoff.updatedAt || new Date().toISOString(),
+      completed_at: takeoff.completed_at || takeoff.completedAt,
+      approved_at: takeoff.approved_at || takeoff.approvedAt,
+      approved_by: takeoff.approved_by || takeoff.approvedBy,
+      total_amount: takeoff.total_amount || takeoff.totalAmount || 0,
+      currency: takeoff.currency || 'USD',
+      items: takeoff.items || [],
+      notes: takeoff.notes || '',
+      tags: takeoff.tags || [],
+      version: takeoff.version || 1
     };
   }
 
   private mapMeasurementData(measurement: any): TakeoffMeasurement {
     return {
       id: String(measurement.id),
-      project_id: String(measurement.project_id || measurement.projectId),
-      plant_id: measurement.plant_id || measurement.plantId,
-      takeoff_id: measurement.takeoff_id || measurement.takeoffId,
-      user_id: String(measurement.user_id || measurement.userId),
-      tool_type: measurement.tool_type || measurement.toolType || 'linear',
-      tool_id: String(measurement.tool_id || measurement.toolId),
-      value: measurement.value || 0,
-      unit: measurement.unit || 'm',
-      coordinates: measurement.coordinates || {
-        type: 'Point',
-        coordinates: [0, 0]
-      },
-      color: measurement.color || '#FF0000',
-      description: measurement.description || '',
+      takeoff_id: String(measurement.takeoff_id || measurement.takeoffId),
+      type: measurement.type || measurement.tool_type || measurement.toolType || 'distance',
+      label: measurement.label || measurement.description || `Measurement ${measurement.id}`,
+      coordinates: measurement.coordinates || measurement.points || [],
       length: measurement.length,
       area: measurement.area,
-      volume: measurement.volume,
-      category: measurement.category || '',
+      unit: measurement.unit || 'm',
+      color: measurement.color || '#FF0000',
       notes: measurement.notes || '',
-      created_at: measurement.created_at || measurement.createdAt || new Date().toISOString(),
-      updated_at: measurement.updated_at || measurement.updatedAt || new Date().toISOString()
+      createdAt: measurement.created_at || measurement.createdAt || new Date().toISOString(),
+      updatedAt: measurement.updated_at || measurement.updatedAt || new Date().toISOString()
     };
   }
 
   private createEmptySummary(): TakeoffSummary {
     return {
-      total_measurements: 0,
-      total_value: 0,
-      total_length: 0,
-      total_area: 0,
-      total_volume: 0,
-      by_tool_type: {},
-      by_category: {}
+      totalItems: 0,
+      totalAmount: 0
     };
   }
 
@@ -174,7 +162,13 @@ class TakeoffService {
         if (filters.search) queryParams.append('search', filters.search);
         if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
         if (filters.sortOrder) queryParams.append('sortOrder', filters.sortOrder);
-        if (filters.status) queryParams.append('status', filters.status);
+        if (filters.status) {
+          if (Array.isArray(filters.status)) {
+            filters.status.forEach(status => queryParams.append('status', status));
+          } else {
+            queryParams.append('status', filters.status);
+          }
+        }
         if (filters.project_id) queryParams.append('project_id', filters.project_id);
         if (filters.plant_id) queryParams.append('plant_id', filters.plant_id);
         if (filters.created_by) queryParams.append('created_by', filters.created_by);
@@ -705,8 +699,8 @@ class TakeoffService {
           data: cached,
           total: cached.length,
           page: 1,
-          limit: cached.length,
-          hasMore: false
+          pageSize: cached.length,
+          totalPages: 1
         };
       }
     }

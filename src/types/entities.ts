@@ -53,6 +53,17 @@ export interface UpdateTakeoffRequest {
 export interface TakeoffFilters {
   status?: string[];
   project_id?: string;
+  plant_id?: string;
+  created_by?: string;
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  date_range?: {
+    start?: string;
+    end?: string;
+  };
   [key: string]: any;
 }
 
@@ -82,4 +93,5 @@ export interface ApiResponse<T = any> {
   message?: string;
   error?: string;
 }
+
 

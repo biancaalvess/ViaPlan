@@ -20,7 +20,7 @@ export interface Tool {
   icon: ReactNode;
   description: ReactNode;
   id: string;
-  type: 'select' | 'trench' | 'bore-shot' | 'vault' | 'hydro-excavation' | 'conduit' | 'measure';
+  type: 'select' | 'trench' | 'bore-shot' | 'vault' | 'hydro-excavation' | 'conduit' | 'measure' | 'yardage' | 'bore-pit' | 'concrete' | 'asphalt' | 'notes';
   name: string;
   config?: ToolConfig;
 }
