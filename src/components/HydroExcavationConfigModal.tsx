@@ -65,7 +65,9 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
   useEffect(() => {
     if (initialConfig) {
       setConfig(initialConfig);
-      setIncludeConduits(!!initialConfig.conduits && initialConfig.conduits.length > 0);
+      setIncludeConduits(
+        !!initialConfig.conduits && initialConfig.conduits.length > 0
+      );
     } else {
       setConfig({
         type: "trench",
@@ -83,7 +85,10 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
   const addConduit = () => {
     setConfig((prev) => ({
       ...prev,
-      conduits: [...(prev.conduits || []), { sizeIn: "1", count: 1, material: "PVC" }],
+      conduits: [
+        ...(prev.conduits || []),
+        { sizeIn: "1", count: 1, material: "PVC" },
+      ],
     }));
   };
 
@@ -171,7 +176,8 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
           {/* Descrição */}
           <div className="space-y-0.5">
             <p className="text-[11px] text-gray-600 leading-tight">
-              Escavação com jato d'água e vácuo. Usada para travessias sensíveis.
+              Escavação com jato d'água e vácuo. Usada para travessias
+              sensíveis.
             </p>
           </div>
 
@@ -180,7 +186,8 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
           {/* Traçado */}
           <div className="space-y-0.5">
             <p className="text-[11px] text-gray-600 leading-tight">
-              <strong>Traçado (reta ou polilinha):</strong> Desenhe a trajetória no plano para definir o percurso da hidroescavação.
+              <strong>Traçado (reta ou polilinha):</strong> Desenhe a trajetória
+              no plano para definir o percurso da hidroescavação.
             </p>
           </div>
 
@@ -193,7 +200,9 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
             </h3>
             <div className="space-y-1.5">
               <div>
-                <Label htmlFor="section-shape" className="text-xs">Formato</Label>
+                <Label htmlFor="section-shape" className="text-xs">
+                  Formato
+                </Label>
                 <Select
                   value={config.section?.shape || "circular"}
                   onValueChange={(value) =>
@@ -201,9 +210,18 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
                       ...prev,
                       section: {
                         shape: value as "circular" | "rectangular",
-                        diameter: value === "circular" ? (prev.section?.diameter || 0.6) : undefined,
-                        width: value === "rectangular" ? (prev.section?.width || 0.6) : undefined,
-                        length: value === "rectangular" ? (prev.section?.length || 0.6) : undefined,
+                        diameter:
+                          value === "circular"
+                            ? prev.section?.diameter || 0.6
+                            : undefined,
+                        width:
+                          value === "rectangular"
+                            ? prev.section?.width || 0.6
+                            : undefined,
+                        length:
+                          value === "rectangular"
+                            ? prev.section?.length || 0.6
+                            : undefined,
                       },
                     }))
                   }
@@ -219,7 +237,9 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
               </div>
               {config.section?.shape === "circular" ? (
                 <div>
-                  <Label htmlFor="section-diameter" className="text-xs">Diâmetro (m)</Label>
+                  <Label htmlFor="section-diameter" className="text-xs">
+                    Diâmetro (m)
+                  </Label>
                   <Input
                     id="section-diameter"
                     type="number"
@@ -241,7 +261,9 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
               ) : (
                 <div className="grid grid-cols-2 gap-1.5">
                   <div>
-                    <Label htmlFor="section-width" className="text-xs">Largura (m)</Label>
+                    <Label htmlFor="section-width" className="text-xs">
+                      Largura (m)
+                    </Label>
                     <Input
                       id="section-width"
                       type="number"
@@ -262,7 +284,9 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
                     />
                   </div>
                   <div>
-                    <Label htmlFor="section-length" className="text-xs">Comprimento (m)</Label>
+                    <Label htmlFor="section-length" className="text-xs">
+                      Comprimento (m)
+                    </Label>
                     <Input
                       id="section-length"
                       type="number"
@@ -295,7 +319,9 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
               Profundidade
             </h3>
             <div>
-              <Label htmlFor="depth" className="text-xs">Profundidade (m)</Label>
+              <Label htmlFor="depth" className="text-xs">
+                Profundidade (m)
+              </Label>
               <Input
                 id="depth"
                 type="number"
@@ -340,13 +366,19 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
                 }
                 className="h-4 w-4"
               />
-              <Label htmlFor="efficiency-ratio" className="text-[11px] leading-tight">
-                Relação de eficiência (opcional: perda por colapso ou material aspirado extra)
+              <Label
+                htmlFor="efficiency-ratio"
+                className="text-[11px] leading-tight"
+              >
+                Relação de eficiência (opcional: perda por colapso ou material
+                aspirado extra)
               </Label>
             </div>
             {config.efficiencyRatio !== undefined && (
               <div className="pl-5">
-                <Label htmlFor="efficiency-value" className="text-xs">Relação (0-1)</Label>
+                <Label htmlFor="efficiency-value" className="text-xs">
+                  Relação (0-1)
+                </Label>
                 <Input
                   id="efficiency-value"
                   type="number"
@@ -380,7 +412,10 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
                 onCheckedChange={(checked) => {
                   const newIncludeConduits = checked as boolean;
                   setIncludeConduits(newIncludeConduits);
-                  if (newIncludeConduits && (!config.conduits || config.conduits.length === 0)) {
+                  if (
+                    newIncludeConduits &&
+                    (!config.conduits || config.conduits.length === 0)
+                  ) {
                     setConfig((prev) => ({
                       ...prev,
                       conduits: [{ sizeIn: "1", count: 1, material: "PVC" }],
@@ -394,14 +429,20 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
                 }}
                 className="h-4 w-4"
               />
-              <Label htmlFor="include-conduits" className="text-[11px] leading-tight">
+              <Label
+                htmlFor="include-conduits"
+                className="text-[11px] leading-tight"
+              >
                 Incluir Condutos
               </Label>
             </div>
             {includeConduits && config.conduits && (
               <div className="space-y-1 pl-5">
                 {config.conduits.map((conduit, index) => (
-                  <div key={index} className="border rounded-md p-1.5 bg-gray-50">
+                  <div
+                    key={index}
+                    className="border rounded-md p-1.5 bg-gray-50"
+                  >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-[11px] font-medium">
                         Conduto {index + 1}
@@ -509,7 +550,11 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
         </div>
 
         <div className="flex justify-end space-x-2 pt-2 mt-2">
-          <Button variant="outline" onClick={onClose} className="h-7 text-xs px-3">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="h-7 text-xs px-3"
+          >
             Cancelar
           </Button>
           <Button
