@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Github } from "lucide-react";
 import ViaPlanLogo from "@/components/ViaPlanLogo";
 
 const LandingPage = () => {
@@ -11,8 +11,8 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-[#223148] via-[#2f486d] to-[#223148] flex items-center justify-center p-4 md:p-6 overflow-y-auto">
-      <div className="max-w-4xl w-full flex flex-col justify-center items-center py-8 md:py-12">
+    <div className="h-screen bg-gradient-to-br from-[#223148] via-[#2f486d] to-[#223148] flex flex-col p-4 md:p-6 relative overflow-y-auto">
+      <div className="max-w-4xl w-full flex flex-col justify-center items-center py-8 md:py-12 mx-auto flex-1">
         {/* Logo e Título */}
         <div className="text-center mb-8 md:mb-12">
           <ViaPlanLogo />
@@ -67,6 +67,22 @@ const LandingPage = () => {
           </Button>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="absolute bottom-0 left-0 right-0 py-4 px-4 md:px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <a
+            href="https://github.com/biancaalvess"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 text-xs md:text-sm text-[#d2c7b8]/80 hover:text-[#f3eae0] transition-colors duration-200 group mx-auto"
+          >
+            <span className="text-[#d2c7b8]/60">Desenvolvido por</span>
+            <Github className="h-3 w-3 md:h-4 md:w-4 group-hover:scale-110 transition-transform" />
+            <span className="font-medium">Bianca Alves</span>
+          </a>
+        </div>
+      </footer>
     </div>
   );
 };
