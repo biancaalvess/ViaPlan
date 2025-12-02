@@ -84,7 +84,6 @@ export interface TakeoffMeasurement {
 }
 
 export const useMeasurements = () => {
-  const { toast } = useToast();
   const [measurements, setMeasurements] = useState<TakeoffMeasurement[]>([]);
 
   const addMeasurement = useCallback((measurement: Omit<TakeoffMeasurement, 'id'>) => {

@@ -5,7 +5,6 @@ import 'react-pdf/dist/Page/TextLayer.css';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, AlertCircle, RefreshCw, FileX } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { ScaleCalibration } from './ScaleCalibration';
 
 // Configure PDF.js worker - usando CDN do unpkg com versão dinâmica
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -117,7 +116,7 @@ interface QuickTakeoffViewerProps {
   activeTool: string;
   measurements: TakeoffMeasurement[];
   onAddMeasurement: (measurement: Omit<TakeoffMeasurement, 'id'>) => void;
-  scale: string;
+  scale?: string;
   zoom: number;
   selectedColor?: string;
   trenchConfig: any;
@@ -137,7 +136,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
   activeTool,
   measurements,
   onAddMeasurement,
-  scale,
+  scale: _scale,
   zoom,
   selectedColor,
   trenchConfig,
@@ -152,7 +151,6 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
   const [drawingPoints, setDrawingPoints] = useState<
     { x: number; y: number }[]
   >([]);
-  const [currentMeasurement, setCurrentMeasurement] = useState<any>(null);
   const [pageDimensions, setPageDimensions] = useState<{
     width: number;
     height: number;
@@ -165,10 +163,6 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
-  // Estado para histórico de medições (desfazer)
-  const [measurementHistory, setMeasurementHistory] = useState<
-    TakeoffMeasurement[]
-  >([]);
 
   // Estado para controle de erro e retry
   const [pdfError, setPdfError] = useState<Error | null>(null);
@@ -289,13 +283,6 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     }
 
     const lastMeasurement = measurements[measurements.length - 1];
-    const newMeasurements = measurements.slice(0, -1);
-
-    // Adicionar ao histórico
-    setMeasurementHistory(prev => [...prev, lastMeasurement]);
-
-    // Atualizar medições
-    // TODO: Implementar callback para atualizar medições no componente pai
 
     toast({
       title: 'Medição Desfeita',
