@@ -230,12 +230,13 @@ const QuickTakeoffPage = () => {
       config: vaultConfig,
     },
     {
-      id: "yardage",
+      id: "area",
       name: "Área",
       description:
         "Polígono, área total, perímetro e profundidade opcional para volume. Resultado: área em m² e perímetro.",
       icon: Layers,
-      needsConfig: false,
+      needsConfig: true,
+      config: areaConfig,
     },
     {
       id: "note",
