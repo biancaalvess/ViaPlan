@@ -15,7 +15,7 @@ export function Header({ className, title, children }: HeaderProps) {
         <div className='flex justify-between items-center h-16'>
           <div className='flex items-center'>
             <Link to='/' className='text-2xl font-bold text-blue-600 mr-8'>
-              Devco
+              ViaPlan
             </Link>
             {title && (
               <h1 className='text-xl font-semibold text-gray-900'>{title}</h1>

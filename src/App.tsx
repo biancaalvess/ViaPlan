@@ -6,7 +6,7 @@ import QuickTakeoffPage from '@/components/QuickTakeoffPage';
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="devco-ui-theme">
+    <ThemeProvider defaultTheme="light" storageKey="viaplan-ui-theme">
       <div className="min-h-screen bg-background">
         <Routes>
           <Route path="/" element={<LandingPage />} />

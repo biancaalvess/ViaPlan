@@ -525,12 +525,12 @@ export class UploadService {
         xhr.open('POST', url);
       
       // Configurar headers de autenticação APÓS abrir a conexão
-      const token = localStorage.getItem('devco-token') || localStorage.getItem('devco-test-session');
+      const token = localStorage.getItem('viaplan-token') || localStorage.getItem('viaplan-test-session');
       if (token) {
         if (token.includes('.') || token.length > 100) {
           xhr.setRequestHeader('Authorization', `Bearer ${token}`);
         } else {
-          xhr.setRequestHeader('X-Devco-Session', token);
+          xhr.setRequestHeader('X-ViaPlan-Session', token);
         }
       }
 
@@ -580,7 +580,7 @@ export class UploadService {
   }
 
   private getAuthHeaders(): Record<string, string> {
-    const token = localStorage.getItem('devco-token') || localStorage.getItem('devco-test-session');
+    const token = localStorage.getItem('viaplan-token') || localStorage.getItem('viaplan-test-session');
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json'
@@ -590,7 +590,7 @@ export class UploadService {
       if (token.includes('.') || token.length > 100) {
         headers['Authorization'] = `Bearer ${token}`;
       } else {
-        headers['X-Devco-Session'] = token;
+        headers['X-ViaPlan-Session'] = token;
       }
     }
     

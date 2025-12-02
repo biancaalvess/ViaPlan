@@ -654,7 +654,7 @@ class TakeoffService {
 
   private saveTakeoffsToLocalStorage(takeoffs: Takeoff[]) {
     try {
-      localStorage.setItem('devco-takeoffs-cache', JSON.stringify({
+      localStorage.setItem('viaplan-takeoffs-cache', JSON.stringify({
         data: takeoffs,
         timestamp: Date.now(),
         ttl: 5 * 60 * 1000 // 5 minutos
@@ -666,12 +666,12 @@ class TakeoffService {
 
   private getTakeoffsFromLocalStorage(): Takeoff[] | null {
     try {
-      const cached = localStorage.getItem('devco-takeoffs-cache');
+      const cached = localStorage.getItem('viaplan-takeoffs-cache');
       if (!cached) return null;
 
       const { data, timestamp, ttl } = JSON.parse(cached);
       if (Date.now() - timestamp > ttl) {
-        localStorage.removeItem('devco-takeoffs-cache');
+        localStorage.removeItem('viaplan-takeoffs-cache');
         return null;
       }
 
@@ -684,7 +684,7 @@ class TakeoffService {
 
   private clearTakeoffsCache() {
     try {
-      localStorage.removeItem('devco-takeoffs-cache');
+      localStorage.removeItem('viaplan-takeoffs-cache');
     } catch (error) {
       console.warn('Erro ao limpar cache de takeoffs:', error);
     }
