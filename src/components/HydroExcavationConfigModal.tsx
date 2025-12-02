@@ -21,21 +21,16 @@ import { Plus, Trash2 } from "lucide-react";
 
 export interface HydroExcavationConfig {
   type: "trench" | "hole" | "potholing";
-  holeShape?: "rectangle" | "circle";
-  holeDimensions?: {
-    length?: number;
-    width?: number;
+  section?: {
+    shape: "circular" | "rectangular";
     diameter?: number;
-    depth?: number;
-    depthUnit?: "inches" | "feet";
+    width?: number;
+    length?: number;
   };
-  potholingData?: {
-    surfaceType?: "asphalt" | "concrete" | "dirt";
-    averageDepth?: number;
-    depthUnit?: "inches" | "feet";
-    includeRestoration?: boolean;
-  };
-  conduits: Array<{
+  depth?: number;
+  volumeRemoved?: number;
+  efficiencyRatio?: number;
+  conduits?: Array<{
     sizeIn: string;
     count: number;
     material: string;
@@ -57,29 +52,45 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
 }) => {
   const [config, setConfig] = useState<HydroExcavationConfig>({
     type: "trench",
-    conduits: [{ sizeIn: "1", count: 1, material: "PVC" }],
+    section: {
+      shape: "circular",
+      diameter: 0.6,
+    },
+    depth: 0.9,
+    efficiencyRatio: 0.85,
   });
 
-  const [includeConduits, setIncludeConduits] = useState(true);
+  const [includeConduits, setIncludeConduits] = useState(false);
 
   useEffect(() => {
     if (initialConfig) {
       setConfig(initialConfig);
-      setIncludeConduits(initialConfig.conduits.length > 0);
+      setIncludeConduits(!!initialConfig.conduits && initialConfig.conduits.length > 0);
+    } else {
+      setConfig({
+        type: "trench",
+        section: {
+          shape: "circular",
+          diameter: 0.6,
+        },
+        depth: 0.9,
+        efficiencyRatio: 0.85,
+      });
+      setIncludeConduits(false);
     }
-  }, [initialConfig]);
+  }, [initialConfig, isOpen]);
 
   const addConduit = () => {
     setConfig((prev) => ({
       ...prev,
-      conduits: [...prev.conduits, { sizeIn: "1", count: 1, material: "PVC" }],
+      conduits: [...(prev.conduits || []), { sizeIn: "1", count: 1, material: "PVC" }],
     }));
   };
 
   const removeConduit = (index: number) => {
     setConfig((prev) => ({
       ...prev,
-      conduits: prev.conduits.filter((_, i) => i !== index),
+      conduits: prev.conduits?.filter((_, i) => i !== index),
     }));
   };
 
@@ -97,9 +108,9 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
   };
 
   const handleSave = () => {
-    const finalConfig = {
+    const finalConfig: HydroExcavationConfig = {
       ...config,
-      conduits: includeConduits ? config.conduits : [],
+      conduits: includeConduits ? config.conduits : undefined,
     };
     onSave(finalConfig);
   };
@@ -129,350 +140,294 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
     "Other",
   ];
 
-  const surfaceTypes = ["asphalt", "concrete", "dirt"];
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] sm:max-w-lg md:max-w-xl w-full mx-2 sm:mx-4">
-        <DialogHeader>
+      <DialogContent className="max-w-[95vw] sm:max-w-sm md:max-w-md w-full mx-2 sm:mx-4">
+        <DialogHeader className="pb-2">
           <div className="flex justify-between items-center">
-            <DialogTitle>Configurar Hidroescavação</DialogTitle>
+            <DialogTitle className="text-sm">Hidroescavação</DialogTitle>
             <Button
               variant="outline"
-              onClick={() =>
+              onClick={() => {
                 setConfig({
                   type: "trench",
-                  conduits: [{ sizeIn: "1", count: 1, material: "PVC" }],
-                })
-              }
-              className="text-sm"
+                  section: {
+                    shape: "circular",
+                    diameter: 0.6,
+                  },
+                  depth: 0.9,
+                  efficiencyRatio: 0.85,
+                });
+                setIncludeConduits(false);
+              }}
+              className="text-xs h-7 px-2"
             >
               Desfazer
             </Button>
           </div>
         </DialogHeader>
 
-        <div className="space-y-6 mt-4">
-          {/* Type Selection */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-900">
-              Tipo de Escavação
-            </h3>
-            <Select
-              value={config.type}
-              onChange={(e) =>
-                setConfig((prev) => ({
-                  ...prev,
-                  type: e.target.value as "trench" | "hole" | "potholing",
-                }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="trench">Trincheira</SelectItem>
-                <SelectItem value="hole">Buraco</SelectItem>
-                <SelectItem value="potholing">Potholing</SelectItem>
-              </SelectContent>
-            </Select>
+        <div className="space-y-3 mt-2 max-h-[70vh] overflow-y-auto pr-1">
+          {/* Descrição */}
+          <div className="space-y-0.5">
+            <p className="text-[11px] text-gray-600 leading-tight">
+              Escavação com jato d'água e vácuo. Usada para travessias sensíveis.
+            </p>
           </div>
 
-          <Separator />
+          <Separator className="my-1.5" />
 
-          {/* Hole Configuration */}
-          {config.type === "hole" && (
-            <>
-              <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-900">
-                  Configuração do Buraco
-                </h3>
+          {/* Traçado */}
+          <div className="space-y-0.5">
+            <p className="text-[11px] text-gray-600 leading-tight">
+              <strong>Traçado (reta ou polilinha):</strong> Desenhe a trajetória no plano para definir o percurso da hidroescavação.
+            </p>
+          </div>
 
-                <div>
-                  <Label htmlFor="hole-shape">Formato</Label>
-                  <Select
-                    value={config.holeShape || "rectangle"}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        holeShape: e.target.value as "rectangle" | "circle",
-                        holeDimensions: {
-                          ...prev.holeDimensions,
-                          depth: 3,
-                          depthUnit: "feet",
-                        },
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="rectangle">Retangular</SelectItem>
-                      <SelectItem value="circle">Circular</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+          <Separator className="my-1.5" />
 
-                <div className="grid grid-cols-2 gap-4">
-                  {config.holeShape === "rectangle" ? (
-                    <>
-                      <div>
-                        <Label htmlFor="hole-length">Comprimento (ft)</Label>
-                        <Input
-                          id="hole-length"
-                          type="number"
-                          step="0.1"
-                          value={config.holeDimensions?.length || 0}
-                          onChange={(e) =>
-                            setConfig((prev) => ({
-                              ...prev,
-                              holeDimensions: {
-                                ...prev.holeDimensions,
-                                length: parseFloat(e.target.value) || 0,
-                              },
-                            }))
-                          }
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="hole-width">Largura (ft)</Label>
-                        <Input
-                          id="hole-width"
-                          type="number"
-                          step="0.1"
-                          value={config.holeDimensions?.width || 0}
-                          onChange={(e) =>
-                            setConfig((prev) => ({
-                              ...prev,
-                              holeDimensions: {
-                                ...prev.holeDimensions,
-                                width: parseFloat(e.target.value) || 0,
-                              },
-                            }))
-                          }
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <div>
-                      <Label htmlFor="hole-diameter">Diâmetro (ft)</Label>
-                      <Input
-                        id="hole-diameter"
-                        type="number"
-                        step="0.1"
-                        value={config.holeDimensions?.diameter || 0}
-                        onChange={(e) =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            holeDimensions: {
-                              ...prev.holeDimensions,
-                              diameter: parseFloat(e.target.value) || 0,
-                            },
-                          }))
-                        }
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="hole-depth">Profundidade</Label>
-                    <Input
-                      id="hole-depth"
-                      type="number"
-                      step="0.1"
-                      value={config.holeDimensions?.depth || 0}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          holeDimensions: {
-                            ...prev.holeDimensions,
-                            depth: parseFloat(e.target.value) || 0,
-                          },
-                        }))
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="hole-depth-unit">Unidade</Label>
-                    <Select
-                      value={config.holeDimensions?.depthUnit || "feet"}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          holeDimensions: {
-                            ...prev.holeDimensions,
-                            depthUnit: e.target.value as "inches" | "feet",
-                          },
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="feet">Pés</SelectItem>
-                        <SelectItem value="inches">Polegadas</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+          {/* Seção Nominal */}
+          <div className="space-y-1.5">
+            <h3 className="text-[11px] font-semibold text-gray-900">
+              Seção nominal (geralmente circular)
+            </h3>
+            <div className="space-y-1.5">
+              <div>
+                <Label htmlFor="section-shape" className="text-xs">Formato</Label>
+                <Select
+                  value={config.section?.shape || "circular"}
+                  onValueChange={(value) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      section: {
+                        shape: value as "circular" | "rectangular",
+                        diameter: value === "circular" ? (prev.section?.diameter || 0.6) : undefined,
+                        width: value === "rectangular" ? (prev.section?.width || 0.6) : undefined,
+                        length: value === "rectangular" ? (prev.section?.length || 0.6) : undefined,
+                      },
+                    }))
+                  }
+                >
+                  <SelectTrigger className="h-7 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="circular">Circular</SelectItem>
+                    <SelectItem value="rectangular">Retangular</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <Separator />
-            </>
-          )}
-
-          {/* Potholing Configuration */}
-          {config.type === "potholing" && (
-            <>
-              <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-900">
-                  Configuração de Potholing
-                </h3>
-
+              {config.section?.shape === "circular" ? (
                 <div>
-                  <Label htmlFor="surface-type">Tipo de Superfície</Label>
-                  <Select
-                    value={config.potholingData?.surfaceType || "asphalt"}
+                  <Label htmlFor="section-diameter" className="text-xs">Diâmetro (m)</Label>
+                  <Input
+                    id="section-diameter"
+                    type="number"
+                    step="0.01"
+                    value={config.section?.diameter || 0}
                     onChange={(e) =>
                       setConfig((prev) => ({
                         ...prev,
-                        potholingData: {
-                          ...prev.potholingData,
-                          surfaceType: e.target.value as
-                            | "asphalt"
-                            | "concrete"
-                            | "dirt",
-                          averageDepth: 12,
-                          depthUnit: "inches",
-                          includeRestoration: false,
+                        section: {
+                          ...prev.section,
+                          shape: "circular",
+                          diameter: parseFloat(e.target.value) || 0,
                         },
                       }))
                     }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="asphalt">Asfalto</SelectItem>
-                      <SelectItem value="concrete">Concreto</SelectItem>
-                      <SelectItem value="dirt">Terra</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="pothole-depth">Profundidade Média</Label>
-                    <Input
-                      id="pothole-depth"
-                      type="number"
-                      step="0.1"
-                      value={config.potholingData?.averageDepth || 0}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          potholingData: {
-                            ...prev.potholingData,
-                            averageDepth: parseFloat(e.target.value) || 0,
-                          },
-                        }))
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="pothole-depth-unit">Unidade</Label>
-                    <Select
-                      value={config.potholingData?.depthUnit || "inches"}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          potholingData: {
-                            ...prev.potholingData,
-                            depthUnit: e.target.value as "inches" | "feet",
-                          },
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="inches">Polegadas</SelectItem>
-                        <SelectItem value="feet">Pés</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="include-restoration"
-                    checked={config.potholingData?.includeRestoration || false}
-                    onCheckedChange={(checked) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        potholingData: {
-                          ...prev.potholingData,
-                          includeRestoration: checked as boolean,
-                        },
-                      }))
-                    }
+                    className="h-7 text-xs"
                   />
-                  <Label htmlFor="include-restoration">
-                    Incluir Restauração
-                  </Label>
                 </div>
-              </div>
-              <Separator />
-            </>
-          )}
+              ) : (
+                <div className="grid grid-cols-2 gap-1.5">
+                  <div>
+                    <Label htmlFor="section-width" className="text-xs">Largura (m)</Label>
+                    <Input
+                      id="section-width"
+                      type="number"
+                      step="0.01"
+                      value={config.section?.width || 0}
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          section: {
+                            ...prev.section,
+                            shape: "rectangular",
+                            width: parseFloat(e.target.value) || 0,
+                            length: prev.section?.length || 0.6,
+                          },
+                        }))
+                      }
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="section-length" className="text-xs">Comprimento (m)</Label>
+                    <Input
+                      id="section-length"
+                      type="number"
+                      step="0.01"
+                      value={config.section?.length || 0}
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          section: {
+                            ...prev.section,
+                            shape: "rectangular",
+                            width: prev.section?.width || 0.6,
+                            length: parseFloat(e.target.value) || 0,
+                          },
+                        }))
+                      }
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
-          {/* Conduits Configuration */}
-          <div className="space-y-4">
+          <Separator className="my-1.5" />
+
+          {/* Profundidade */}
+          <div className="space-y-1.5">
+            <h3 className="text-[11px] font-semibold text-gray-900">
+              Profundidade
+            </h3>
+            <div>
+              <Label htmlFor="depth" className="text-xs">Profundidade (m)</Label>
+              <Input
+                id="depth"
+                type="number"
+                step="0.01"
+                value={config.depth || 0}
+                onChange={(e) =>
+                  setConfig((prev) => ({
+                    ...prev,
+                    depth: parseFloat(e.target.value) || 0,
+                  }))
+                }
+                className="h-7 text-xs"
+              />
+            </div>
+          </div>
+
+          <Separator className="my-1.5" />
+
+          {/* Volume Removido */}
+          <div className="space-y-0.5">
+            <h3 className="text-[11px] font-semibold text-gray-900">
+              Volume removido
+            </h3>
+            <p className="text-[11px] text-gray-600 leading-tight">
+              Será calculado automaticamente com base na seção e profundidade.
+            </p>
+          </div>
+
+          <Separator className="my-1.5" />
+
+          {/* Relação de Eficiência */}
+          <div className="space-y-1.5">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="efficiency-ratio"
+                checked={!!config.efficiencyRatio}
+                onCheckedChange={(checked) =>
+                  setConfig((prev) => ({
+                    ...prev,
+                    efficiencyRatio: checked ? 0.85 : undefined,
+                  }))
+                }
+                className="h-4 w-4"
+              />
+              <Label htmlFor="efficiency-ratio" className="text-[11px] leading-tight">
+                Relação de eficiência (opcional: perda por colapso ou material aspirado extra)
+              </Label>
+            </div>
+            {config.efficiencyRatio !== undefined && (
+              <div className="pl-5">
+                <Label htmlFor="efficiency-value" className="text-xs">Relação (0-1)</Label>
+                <Input
+                  id="efficiency-value"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="1"
+                  value={config.efficiencyRatio || 0.85}
+                  onChange={(e) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      efficiencyRatio: parseFloat(e.target.value) || 0.85,
+                    }))
+                  }
+                  className="h-7 text-xs"
+                />
+                <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">
+                  Valor entre 0 e 1. Ex: 0.85 = 85% de eficiência
+                </p>
+              </div>
+            )}
+          </div>
+
+          <Separator className="my-1.5" />
+
+          {/* Condutos */}
+          <div className="space-y-1.5">
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="include-conduits"
                 checked={includeConduits}
-                onCheckedChange={(checked) =>
-                  setIncludeConduits(checked as boolean)
-                }
+                onCheckedChange={(checked) => {
+                  const newIncludeConduits = checked as boolean;
+                  setIncludeConduits(newIncludeConduits);
+                  if (newIncludeConduits && (!config.conduits || config.conduits.length === 0)) {
+                    setConfig((prev) => ({
+                      ...prev,
+                      conduits: [{ sizeIn: "1", count: 1, material: "PVC" }],
+                    }));
+                  } else if (!newIncludeConduits) {
+                    setConfig((prev) => ({
+                      ...prev,
+                      conduits: undefined,
+                    }));
+                  }
+                }}
+                className="h-4 w-4"
               />
-              <Label htmlFor="include-conduits">Incluir Condutos</Label>
+              <Label htmlFor="include-conduits" className="text-[11px] leading-tight">
+                Incluir Condutos
+              </Label>
             </div>
-
-            {includeConduits && (
-              <div className="space-y-3">
+            {includeConduits && config.conduits && (
+              <div className="space-y-1 pl-5">
                 {config.conduits.map((conduit, index) => (
-                  <div key={index} className="border rounded-lg p-3 bg-gray-50">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium">
+                  <div key={index} className="border rounded-md p-1.5 bg-gray-50">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[11px] font-medium">
                         Conduto {index + 1}
                       </span>
-                      {config.conduits.length > 1 && (
+                      {config.conduits && config.conduits.length > 1 && (
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => removeConduit(index)}
-                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                          className="h-4 w-4 p-0 text-red-500 hover:text-red-700"
                         >
-                          <Trash2 className="h-3 w-3" />
+                          <Trash2 className="h-2.5 w-2.5" />
                         </Button>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-1">
                       <div>
                         <Label className="text-xs">Tamanho</Label>
                         <Select
                           value={conduit.sizeIn}
-                          onChange={(e) =>
-                            updateConduit(index, "sizeIn", e.target.value)
+                          onValueChange={(value) =>
+                            updateConduit(index, "sizeIn", value)
                           }
                         >
-                          <SelectTrigger className="h-8">
+                          <SelectTrigger className="h-7 text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -498,7 +453,7 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
                               parseInt(e.target.value) || 1
                             )
                           }
-                          className="h-8"
+                          className="h-7 text-xs"
                         />
                       </div>
 
@@ -506,11 +461,11 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
                         <Label className="text-xs">Material</Label>
                         <Select
                           value={conduit.material}
-                          onChange={(e) =>
-                            updateConduit(index, "material", e.target.value)
+                          onValueChange={(value) =>
+                            updateConduit(index, "material", value)
                           }
                         >
-                          <SelectTrigger className="h-8">
+                          <SelectTrigger className="h-7 text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -531,25 +486,37 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={addConduit}
-                  className="w-full"
+                  className="w-full h-7 text-xs mt-1"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-3 w-3 mr-1" />
                   Adicionar Conduto
                 </Button>
               </div>
             )}
           </div>
+
+          <Separator className="my-1.5" />
+
+          {/* Resultado Principal */}
+          <div className="space-y-0.5">
+            <h3 className="text-[11px] font-semibold text-gray-900">
+              Resultado principal
+            </h3>
+            <p className="text-[11px] text-gray-600 leading-tight">
+              Comprimento + volume de remoção.
+            </p>
+          </div>
         </div>
 
-        <div className="flex justify-end space-x-2 pt-4">
-          <Button variant="outline" onClick={onClose}>
+        <div className="flex justify-end space-x-2 pt-2 mt-2">
+          <Button variant="outline" onClick={onClose} className="h-7 text-xs px-3">
             Cancelar
           </Button>
           <Button
             onClick={handleSave}
-            className="bg-[#2f486d] hover:bg-[#3d5a7d] text-[#f3eae0]"
+            className="bg-[#2f486d] hover:bg-[#3d5a7d] text-[#f3eae0] h-7 text-xs px-3"
           >
-            Salvar
+            Confirmar
           </Button>
         </div>
       </DialogContent>
