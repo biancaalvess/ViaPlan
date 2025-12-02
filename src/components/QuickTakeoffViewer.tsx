@@ -7,16 +7,14 @@ import { ChevronLeft, ChevronRight, AlertCircle, RefreshCw, FileX } from 'lucide
 import { useToast } from '@/components/ui/use-toast';
 import { ScaleCalibration } from './ScaleCalibration';
 
-// Configure PDF.js worker - usando arquivo local do worker
-// O Vite copia o worker para /public via plugin personalizado
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+// Configure PDF.js worker - usando CDN do unpkg com versão dinâmica
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-// Log da configuração do PDF.js
-console.log('QuickTakeoffViewer - PDF.js version:', pdfjs.version);
-console.log(
-  'QuickTakeoffViewer - Worker local:',
-  pdfjs.GlobalWorkerOptions.workerSrc
-);
+// Log da configuração do PDF.js (apenas em desenvolvimento)
+if (import.meta.env.DEV) {
+  console.log('QuickTakeoffViewer - PDF.js version:', pdfjs.version);
+  console.log('QuickTakeoffViewer - Worker:', pdfjs.GlobalWorkerOptions.workerSrc);
+}
 
 // PDF.js options para melhor compatibilidade - será memoizado no componente
 const createPdfOptions = () => ({

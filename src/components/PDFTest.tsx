@@ -14,8 +14,8 @@ export const PDFTest: React.FC = () => {
       // Importar PDF.js dinamicamente
       const pdfjsLib = await import('pdfjs-dist');
 
-      // Configurar worker local (copiado pelo plugin do Vite)
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+      // Configurar worker do CDN com versão dinâmica
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
       setPdfjsVersion(pdfjsLib.version);
       setWorkerSrc(pdfjsLib.GlobalWorkerOptions.workerSrc);

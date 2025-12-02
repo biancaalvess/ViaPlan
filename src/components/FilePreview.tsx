@@ -41,8 +41,8 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
         const arrayBuffer = await file.arrayBuffer();
         const pdfjsLib = await import('pdfjs-dist');
 
-        // Usar o worker local (copiado pelo plugin do Vite)
-        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+        // Usar o worker do CDN com versão dinâmica
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         const page = await pdf.getPage(1);

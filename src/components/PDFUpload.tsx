@@ -15,8 +15,8 @@ import {
 // Import PDF.js with stable configuration
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Configure worker to use local file (copied by Vite plugin)
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+// Configure worker to use CDN with dynamic version
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 interface PDFUploadProps {
   projectId?: number;
