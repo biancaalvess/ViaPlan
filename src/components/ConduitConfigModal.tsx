@@ -66,7 +66,9 @@ const ConduitConfigModal: React.FC<ConduitConfigModalProps> = ({
     if (initialConfig) {
       setConduits(initialConfig.conduits);
       setIncludeConnections(
-        initialConfig.conduits.map((c) => !!c.connections && c.connections.length > 0)
+        initialConfig.conduits.map(
+          (c) => !!c.connections && c.connections.length > 0
+        )
       );
     } else {
       setConduits([
@@ -112,7 +114,10 @@ const ConduitConfigModal: React.FC<ConduitConfigModalProps> = ({
     if (!updatedConduits[conduitIndex].connections) {
       updatedConduits[conduitIndex].connections = [];
     }
-    updatedConduits[conduitIndex].connections!.push({ type: "Junta", count: 1 });
+    updatedConduits[conduitIndex].connections!.push({
+      type: "Junta",
+      count: 1,
+    });
     setConduits(updatedConduits);
   };
 
@@ -484,8 +489,8 @@ const ConduitConfigModal: React.FC<ConduitConfigModalProps> = ({
                 automaticamente
               </p>
               <p>
-                • <strong>Verificação de compatibilidade:</strong> Será
-                validado com método de instalação (valas, HDD)
+                • <strong>Verificação de compatibilidade:</strong> Será validado
+                com método de instalação (valas, HDD)
               </p>
             </div>
           </div>
