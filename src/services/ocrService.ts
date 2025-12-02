@@ -1,4 +1,4 @@
-import api from '../config/api';
+import { API_CONFIG } from '../config/api';
 
 export interface OCRResult {
   success: boolean;

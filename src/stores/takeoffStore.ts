@@ -491,6 +491,7 @@ export const useTakeoffStore = create<TakeoffState & TakeoffActions>()(
           const aValue = a[sortBy];
           const bValue = b[sortBy];
           
+          if (aValue === undefined || bValue === undefined) return 0;
           if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
           if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
           return 0;

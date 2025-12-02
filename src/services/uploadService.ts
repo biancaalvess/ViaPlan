@@ -105,6 +105,7 @@ export class UploadService {
     console.error(`❌ Todas as ${maxRetries} tentativas falharam`);
     return {
       success: false,
+      message: lastError instanceof Error ? lastError.message : 'Erro após múltiplas tentativas',
       error: lastError instanceof Error ? lastError.message : 'Erro após múltiplas tentativas'
     };
   }
@@ -182,9 +183,11 @@ export class UploadService {
 
     } catch (error) {
       console.error('❌ Erro no upload em chunks:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro no upload em chunks';
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Erro no upload em chunks'
+        message: errorMessage,
+        error: errorMessage
       };
     }
   }
@@ -209,8 +212,10 @@ export class UploadService {
       return await response.json();
     } catch (error) {
       console.error(' Erro ao criar sessão de upload:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao criar sessão de upload';
       return {
         success: false,
+        message: errorMessage,
         error: 'Erro ao criar sessão de upload'
       };
     }
@@ -242,8 +247,10 @@ export class UploadService {
       return await response.json();
     } catch (error) {
       console.error(' Erro ao enviar chunk:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao enviar chunk';
       return {
         success: false,
+        message: errorMessage,
         error: 'Erro ao enviar chunk'
       };
     }
@@ -264,8 +271,10 @@ export class UploadService {
       return await response.json();
     } catch (error) {
       console.error(' Erro ao finalizar upload:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao finalizar upload';
       return {
         success: false,
+        message: errorMessage,
         error: 'Erro ao finalizar upload'
       };
     }
@@ -293,8 +302,10 @@ export class UploadService {
       return response;
     } catch (error) {
       console.error('❌ Erro no upload de takeoff:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro no upload de takeoff';
       return {
         success: false,
+        message: errorMessage,
         error: error instanceof Error ? error.message : 'Erro desconhecido'
       };
     }
@@ -331,8 +342,10 @@ export class UploadService {
       return response;
     } catch (error) {
       console.error('❌ Erro no upload genérico:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro no upload genérico';
       return {
         success: false,
+        message: errorMessage,
         error: error instanceof Error ? error.message : 'Erro desconhecido'
       };
     }
@@ -367,8 +380,10 @@ export class UploadService {
       return response;
     } catch (error) {
       console.error('❌ Erro no upload com detecção automática:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro no upload com detecção automática';
       return {
         success: false,
+        message: errorMessage,
         error: error instanceof Error ? error.message : 'Erro desconhecido'
       };
     }
@@ -437,15 +452,19 @@ export class UploadService {
         } else {
           try {
             const errorResponse = JSON.parse(xhr.responseText);
+            const errorMsg = errorResponse.error || errorResponse.message || `Erro HTTP ${xhr.status}`;
             resolve({
               success: false,
-              error: errorResponse.error || errorResponse.message || `Erro HTTP ${xhr.status}`,
+              message: errorMsg,
+              error: errorMsg,
               data: errorResponse
             });
           } catch (error) {
+            const errorMsg = `Erro HTTP ${xhr.status}: ${xhr.statusText}`;
             resolve({
               success: false,
-              error: `Erro HTTP ${xhr.status}: ${xhr.statusText}`
+              message: errorMsg,
+              error: errorMsg
             });
           }
         }
@@ -473,6 +492,7 @@ export class UploadService {
          
          resolve({
            success: false,
+           message: errorMessage,
            error: errorMessage
          });
        });
@@ -487,6 +507,7 @@ export class UploadService {
          console.error('❌ XMLHttpRequest timeout após', xhr.timeout, 'ms');
          resolve({
            success: false,
+           message: 'Timeout na requisição. Verifique sua conexão.',
            error: 'Timeout na requisição. Verifique sua conexão.'
          });
        });

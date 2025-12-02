@@ -37,6 +37,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         'bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-ring',
       ghost: 'text-foreground hover:bg-accent hover:text-accent-foreground focus:ring-ring',
       destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:ring-destructive',
+      link: 'text-primary underline-offset-4 hover:underline focus:ring-ring',
     };
 
     const sizes = {
