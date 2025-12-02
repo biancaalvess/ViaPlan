@@ -20,43 +20,35 @@ const LandingPage = () => {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#f3eae0] mb-3 md:mb-4 tracking-tight">
               ViaPlan
             </h1>
-            <p className="text-lg md:text-xl lg:text-2xl text-[#d2c7b8] mb-2 md:mb-3 font-light">
-              Bem-vindo!
-            </p>
-            <p className="text-base md:text-lg text-[#f3eae0]/80 mb-8 md:mb-10 max-w-2xl mx-auto">
-              Sua ferramenta profissional para medição e análise de projetos de infraestrutura
+            <p className="text-base md:text-lg text-[#d2c7b8] mb-4 md:mb-6 font-light">
+              Bem-vindo! Sua ferramenta profissional para medição e análise de projetos de infraestrutura
             </p>
           </div>
         </div>
 
         {/* Informações Básicas */}
-        <div className="w-full max-w-3xl space-y-6 md:space-y-8 mb-8 md:mb-12">
+        <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8 md:mb-10">
           {/* Para que funciona */}
-          <div className="bg-[#2f486d]/40 backdrop-blur-sm border border-[#3d5a7d] rounded-lg md:rounded-xl p-4 md:p-6">
-            <h2 className="text-lg md:text-xl font-semibold text-[#f3eae0] mb-2 md:mb-3">
+          <div className="bg-[#2f486d]/40 backdrop-blur-sm border border-[#3d5a7d] rounded-lg p-3 md:p-4">
+            <h2 className="text-sm md:text-base font-semibold text-[#f3eae0] mb-2">
               Para que funciona?
             </h2>
-            <p className="text-sm md:text-base text-[#d2c7b8] leading-relaxed">
-              O ViaPlan é uma ferramenta especializada para realizar medições técnicas em projetos de infraestrutura. 
-              Ideal para engenheiros, arquitetos e profissionais que precisam medir trincheiras, perfurações direcionais, 
-              condutos, áreas, volumes e outros elementos em plantas e projetos técnicos.
+            <p className="text-xs md:text-sm text-[#d2c7b8] leading-relaxed">
+              Ferramenta para medições técnicas em projetos de infraestrutura. 
+              Ideal para medir trincheiras, perfurações, condutos, áreas e volumes em plantas técnicas.
             </p>
           </div>
 
           {/* Como funciona */}
-          <div className="bg-[#2f486d]/40 backdrop-blur-sm border border-[#3d5a7d] rounded-lg md:rounded-xl p-4 md:p-6">
-            <h2 className="text-lg md:text-xl font-semibold text-[#f3eae0] mb-2 md:mb-3">
+          <div className="bg-[#2f486d]/40 backdrop-blur-sm border border-[#3d5a7d] rounded-lg p-3 md:p-4">
+            <h2 className="text-sm md:text-base font-semibold text-[#f3eae0] mb-2">
               Como funciona?
             </h2>
-            <p className="text-sm md:text-base text-[#d2c7b8] leading-relaxed mb-3 md:mb-4">
-              É simples e intuitivo:
-            </p>
-            <ol className="list-decimal list-inside space-y-2 text-sm md:text-base text-[#d2c7b8] ml-2">
-              <li>Faça upload do seu PDF ou plano técnico</li>
-              <li>Selecione a ferramenta de medição desejada</li>
-              <li>Configure os parâmetros específicos da medição</li>
-              <li>Desenhe e meça diretamente no plano</li>
-              <li>Exporte os resultados para análise</li>
+            <ol className="list-decimal list-inside space-y-1 text-xs md:text-sm text-[#d2c7b8]">
+              <li>Faça upload do PDF</li>
+              <li>Selecione a ferramenta</li>
+              <li>Configure e meça</li>
+              <li>Exporte os resultados</li>
             </ol>
           </div>
         </div>
