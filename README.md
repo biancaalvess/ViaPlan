@@ -1,6 +1,21 @@
-# ViaPlan - Sistema de Takeoff Digital
+# ViaPlan
+
+**Sua ferramenta para medição e análise de projetos de infraestrutura**
+
+![ViaPlan Landing Page](./public/readme.png)
 
 Sistema completo de levantamento de quantitativos (Takeoff) para engenharia civil, infraestrutura, redes e topografia. Permite realizar medições precisas diretamente sobre plantas digitais em PDF, com cálculos automáticos de áreas, volumes e distâncias.
+
+## Para que funciona?
+
+Ferramenta para medições técnicas em projetos de infraestrutura. Ideal para medir trincheiras, perfurações, condutos, áreas e volumes em plantas técnicas.
+
+## Como funciona?
+
+1. Faça upload do PDF
+2. Selecione a ferramenta
+3. Configure e meça
+4. Exporte os resultados
 
 ## Índice
 
@@ -202,7 +217,7 @@ npm install
 3. Configure as variáveis de ambiente:
 Crie um arquivo `.env` na raiz do projeto:
 ```env
-VITE_API_BASE_URL=https://habilitadev-backend.onrender.com/api/v1
+VITE_API_BASE_URL=https://devco-backend-58oq.onrender.com/
 ```
 
 4. Inicie o servidor de desenvolvimento:
