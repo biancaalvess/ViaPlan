@@ -647,7 +647,7 @@ class TakeoffService {
       // Limpar cache de takeoffs
       this.clearTakeoffsCache();
       
-      return result.data!.map(measurement => this.mapMeasurementData(measurement));
+      return result.data!.map((measurement: any) => this.mapMeasurementData(measurement));
     } catch (error) {
       console.error('Erro ao importar medições:', error);
       throw error;
