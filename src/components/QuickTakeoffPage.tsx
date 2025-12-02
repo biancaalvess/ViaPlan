@@ -187,8 +187,7 @@ const QuickTakeoffPage = () => {
     {
       id: "trench",
       name: "Trincheira Aberta",
-      description:
-        "Traçado, largura, profundidade e volume de escavação.",
+      description: "Traçado, largura, profundidade e volume de escavação.",
       icon: Square,
       needsConfig: true,
       config: trenchConfig,
@@ -196,8 +195,7 @@ const QuickTakeoffPage = () => {
     {
       id: "bore-shot",
       name: "Perfuração Direcional",
-      description:
-        "Traçado, raio mínimo, ângulos e profundidade mínima.",
+      description: "Traçado, raio mínimo, ângulos e profundidade mínima.",
       icon: Drill,
       needsConfig: true,
       config: boreShotConfig,
@@ -205,8 +203,7 @@ const QuickTakeoffPage = () => {
     {
       id: "hydro-excavation",
       name: "Hidroescavação",
-      description:
-        "Traçado, seção nominal, profundidade e volume removido.",
+      description: "Traçado, seção nominal, profundidade e volume removido.",
       icon: Droplet,
       needsConfig: true,
       config: hydroExcavationConfig,
@@ -214,8 +211,7 @@ const QuickTakeoffPage = () => {
     {
       id: "conduit",
       name: "Conduto",
-      description:
-        "Trajeto, material, classe/SDR, diâmetro e espessura.",
+      description: "Trajeto, material, classe/SDR, diâmetro e espessura.",
       icon: Gauge,
       needsConfig: true,
       config: conduitConfig,
@@ -223,8 +219,7 @@ const QuickTakeoffPage = () => {
     {
       id: "vault",
       name: "Câmara/Buraco de Mão",
-      description:
-        "Tipo, dimensões, profundidade, material e quantidade.",
+      description: "Tipo, dimensões, profundidade, material e quantidade.",
       icon: CheckSquare,
       needsConfig: true,
       config: vaultConfig,
@@ -232,8 +227,7 @@ const QuickTakeoffPage = () => {
     {
       id: "area",
       name: "Área",
-      description:
-        "Polígono, área total, perímetro e volume opcional.",
+      description: "Polígono, área total, perímetro e volume opcional.",
       icon: Layers,
       needsConfig: true,
       config: areaConfig,
@@ -241,8 +235,7 @@ const QuickTakeoffPage = () => {
     {
       id: "note",
       name: "Nota",
-      description:
-        "Texto livre, metadados e localização.",
+      description: "Texto livre, metadados e localização.",
       icon: FileText,
       needsConfig: false,
     },
