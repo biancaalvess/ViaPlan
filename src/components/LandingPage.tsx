@@ -21,7 +21,8 @@ const LandingPage = () => {
               ViaPlan
             </h1>
             <p className="text-base md:text-lg text-[#d2c7b8] mb-4 md:mb-6 font-light">
-              Bem-vindo! Sua ferramenta profissional para medição e análise de projetos de infraestrutura
+              Sua ferramenta para medição e análise de projetos de
+              infraestrutura
             </p>
           </div>
         </div>
@@ -34,8 +35,9 @@ const LandingPage = () => {
               Para que funciona?
             </h2>
             <p className="text-xs md:text-sm text-[#d2c7b8] leading-relaxed">
-              Ferramenta para medições técnicas em projetos de infraestrutura. 
-              Ideal para medir trincheiras, perfurações, condutos, áreas e volumes em plantas técnicas.
+              Ferramenta para medições técnicas em projetos de infraestrutura.
+              Ideal para medir trincheiras, perfurações, condutos, áreas e
+              volumes em plantas técnicas.
             </p>
           </div>
 

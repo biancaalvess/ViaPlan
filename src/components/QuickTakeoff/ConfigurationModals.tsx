@@ -1,18 +1,18 @@
-import React from 'react';
+import React from "react";
 import TrenchConfigModal, {
   TrenchConfig,
-} from '@/components/TrenchConfigModal';
+} from "@/components/TrenchConfigModal";
 import BoreShotConfigModal, {
   BoreShotConfig,
-} from '@/components/BoreShotConfigModal';
+} from "@/components/BoreShotConfigModal";
 import ConduitConfigModal, {
   ConduitConfig,
-} from '@/components/ConduitConfigModal';
+} from "@/components/ConduitConfigModal";
 import HydroExcavationConfigModal, {
   HydroExcavationConfig,
-} from '@/components/HydroExcavationConfigModal';
-import VaultConfigModal, { VaultConfig } from '@/components/VaultConfigModal';
-import AreaConfigModal, { AreaConfig } from '@/components/AreaConfigModal';
+} from "@/components/HydroExcavationConfigModal";
+import VaultConfigModal, { VaultConfig } from "@/components/VaultConfigModal";
+import AreaConfigModal, { AreaConfig } from "@/components/AreaConfigModal";
 
 interface ConfigurationModalsProps {
   showTrenchConfig: boolean;

@@ -145,7 +145,10 @@ const AreaConfigModal: React.FC<AreaConfigModalProps> = ({
                 }}
                 className="h-4 w-4"
               />
-              <Label htmlFor="include-height" className="text-[11px] leading-tight">
+              <Label
+                htmlFor="include-height"
+                className="text-[11px] leading-tight"
+              >
                 Altura/Profundidade opcional (para extrair volume)
               </Label>
             </div>
@@ -213,4 +216,3 @@ const AreaConfigModal: React.FC<AreaConfigModalProps> = ({
 };
 
 export default AreaConfigModal;
-
