@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '../../utils/utils';
 
 interface SliderProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'value'> {
   value?: number[];
   onValueChange?: (value: number[]) => void;
 }

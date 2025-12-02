@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { cn } from '../../utils/utils';
-import { Sidebar } from '../Sidebar';
+// import { Sidebar } from '../Sidebar'; // Componente não encontrado
 import { Header } from './header';
 
 interface ResponsiveLayoutProps {
@@ -28,15 +28,15 @@ export function ResponsiveLayout({
         </div>
       )}
 
-      {/* Sidebar */}
-      <div
+      {/* Sidebar - Componente não encontrado, comentado temporariamente */}
+      {/* <div
         className={cn(
           'fixed inset-y-0 left-0 z-50 w-64 transition-transform duration-300 transform lg:translate-x-0 lg:static lg:inset-0',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         <Sidebar />
-      </div>
+      </div> */}
 
       {/* Main content */}
       <div className='flex-1 flex flex-col overflow-hidden'>

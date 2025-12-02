@@ -106,7 +106,7 @@ const HydroExcavationConfigModal: React.FC<HydroExcavationConfigModalProps> = ({
   ) => {
     setConfig((prev) => ({
       ...prev,
-      conduits: prev.conduits.map((conduit, i) =>
+      conduits: (prev.conduits || []).map((conduit, i) =>
         i === index ? { ...conduit, [field]: value } : conduit
       ),
     }));

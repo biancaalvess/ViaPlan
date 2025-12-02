@@ -12,7 +12,8 @@ import {
   Circle,
   Minus,
 } from 'lucide-react';
-import { Tool, Measurement, Point } from '../types/measurement';
+import { Tool, Point } from '../types/measurement';
+import { Measurement } from '../types/takeoff';
 
 interface TakeoffCanvasBaseProps {
   imageUrl: string;
@@ -95,12 +96,13 @@ export const TakeoffCanvasBase: React.FC<TakeoffCanvasBaseProps> = ({
     const measurement: Measurement = {
       id: Date.now().toString(),
       type: getMeasurementType(currentTool.type),
+      toolType: currentTool.type,
       label: `${currentTool.name} ${measurements.length + 1}`,
       value: calculateValue(currentPoints, currentTool.type),
       unit: getUnit(currentTool.type),
       points: [...currentPoints],
-      toolType: currentTool.type,
       config: currentTool.config,
+      color: '#ef4444',
     };
 
     onMeasurementAdd(measurement);

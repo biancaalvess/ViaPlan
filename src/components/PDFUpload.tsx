@@ -60,6 +60,7 @@ const PDFUpload: React.FC<PDFUploadProps> = ({
           await page.render({
             canvasContext: context,
             viewport: viewport,
+            canvas: canvas,
           }).promise;
 
           const imageUrl = canvas.toDataURL('image/png');

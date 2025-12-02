@@ -102,7 +102,7 @@ const ConduitConfigModal: React.FC<ConduitConfigModalProps> = ({
   const updateConduit = (
     index: number,
     field: string,
-    value: string | number | undefined
+    value: string | number | undefined | any[]
   ) => {
     const updatedConduits = [...conduits];
     updatedConduits[index] = { ...updatedConduits[index], [field]: value };
@@ -428,7 +428,7 @@ const ConduitConfigModal: React.FC<ConduitConfigModalProps> = ({
                                 className="h-6 w-16 text-[10px]"
                                 placeholder="Qtd"
                               />
-                              {conduit.connections.length > 1 && (
+                              {conduit.connections && conduit.connections.length > 1 && (
                                 <Button
                                   variant="ghost"
                                   size="sm"

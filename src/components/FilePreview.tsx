@@ -56,6 +56,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
         await page.render({
           canvasContext: context!,
           viewport: viewport,
+          canvas: canvas,
         }).promise;
 
         setPreview(canvas.toDataURL());
