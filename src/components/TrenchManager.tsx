@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useAuthContext } from "../contexts/AuthContext";
 import { ProtectedRoute } from "./ProtectedRoute";
 
 interface TrenchParameters {
@@ -33,7 +32,6 @@ interface TrenchOptions {
 }
 
 const TrenchManager: React.FC = () => {
-  const { user } = useAuthContext();
   const [trenches, setTrenches] = useState<TrenchParameters[]>([]);
   const [options, setOptions] = useState<TrenchOptions | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,7 +55,7 @@ const TrenchManager: React.FC = () => {
     costPerMeter: 150.0,
     laborHours: 2.5,
     equipment: [""],
-    safetyFactors: [],
+    safetyFactors: [] as any[],
     complianceStandards: [""],
   });
 
@@ -202,7 +200,7 @@ const TrenchManager: React.FC = () => {
       costPerMeter: 150.0,
       laborHours: 2.5,
       equipment: [""],
-      safetyFactors: [],
+      safetyFactors: [] as any[],
       complianceStandards: [""],
     });
   };
