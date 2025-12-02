@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   ZoomIn,
   ZoomOut,
@@ -15,6 +15,7 @@ import {
   FileText,
   X,
   Trash2,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,6 +46,7 @@ import {
 const QuickTakeoffPage = () => {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   // State management
   const [pdfUrl, setPdfUrl] = useState<string>("");
@@ -317,6 +319,14 @@ const QuickTakeoffPage = () => {
       {/* Top Header */}
       <div className="bg-[#223148] border-b border-[#2f486d] px-3 sm:px-4 md:px-6 py-3 sm:py-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0">
         <div className="flex flex-wrap items-center gap-2 sm:gap-4 md:gap-6">
+          <button
+            onClick={() => navigate("/")}
+            className="text-[#f3eae0]/60 hover:text-[#f3eae0] transition-colors p-1 rounded-md hover:bg-[#2f486d]/50"
+            title="Voltar à página inicial"
+            aria-label="Voltar à página inicial"
+          >
+            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+          </button>
           <h1 className="text-lg sm:text-xl font-semibold text-[#f3eae0]">
             VIAPLAN
           </h1>
