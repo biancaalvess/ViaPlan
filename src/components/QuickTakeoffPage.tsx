@@ -188,7 +188,7 @@ const QuickTakeoffPage = () => {
       id: "trench",
       name: "Trincheira Aberta",
       description:
-        "Traçado (polilinha), largura e profundidade média ou variável, tipo de solo, cálculo de volume. Resultado: comprimento total + volume de escavação.",
+        "Traçado, largura, profundidade e volume de escavação.",
       icon: Square,
       needsConfig: true,
       config: trenchConfig,
@@ -197,7 +197,7 @@ const QuickTakeoffPage = () => {
       id: "bore-shot",
       name: "Perfuração Direcional",
       description:
-        "Traçado (polilinha ou spline), raio mínimo de curvatura, ângulos de entrada/saída, profundidade mínima, diâmetros. Validações automáticas. Resultado: comprimento perfurado + raio mínimo atendido.",
+        "Traçado, raio mínimo, ângulos e profundidade mínima.",
       icon: Drill,
       needsConfig: true,
       config: boreShotConfig,
@@ -206,7 +206,7 @@ const QuickTakeoffPage = () => {
       id: "hydro-excavation",
       name: "Hidroescavação",
       description:
-        "Traçado (reta ou polilinha), seção nominal (circular), profundidade, volume removido. Resultado: comprimento + volume de remoção.",
+        "Traçado, seção nominal, profundidade e volume removido.",
       icon: Droplet,
       needsConfig: true,
       config: hydroExcavationConfig,
@@ -215,7 +215,7 @@ const QuickTakeoffPage = () => {
       id: "conduit",
       name: "Conduto",
       description:
-        "Trajeto (polilinha), material (PVC, PEAD, aço), classe/SDR, diâmetro nominal, espessura, comprimento total. Extras: volume interno, peso estimado.",
+        "Trajeto, material, classe/SDR, diâmetro e espessura.",
       icon: Gauge,
       needsConfig: true,
       config: conduitConfig,
@@ -224,7 +224,7 @@ const QuickTakeoffPage = () => {
       id: "vault",
       name: "Câmara/Buraco de Mão",
       description:
-        "Tipo (poço de visita, caixa de passagem), dimensões (retangular/circular), profundidade, material/classe, quantidade. Resultado: contagem + volume.",
+        "Tipo, dimensões, profundidade, material e quantidade.",
       icon: CheckSquare,
       needsConfig: true,
       config: vaultConfig,
@@ -233,7 +233,7 @@ const QuickTakeoffPage = () => {
       id: "area",
       name: "Área",
       description:
-        "Polígono, área total, perímetro e profundidade opcional para volume. Resultado: área em m² e perímetro.",
+        "Polígono, área total, perímetro e volume opcional.",
       icon: Layers,
       needsConfig: true,
       config: areaConfig,
@@ -242,7 +242,7 @@ const QuickTakeoffPage = () => {
       id: "note",
       name: "Nota",
       description:
-        "Texto livre, nome/autor, data, localização (x,y) e vinculação a objeto. Metadado para documentação.",
+        "Texto livre, metadados e localização.",
       icon: FileText,
       needsConfig: false,
     },
@@ -391,7 +391,7 @@ const QuickTakeoffPage = () => {
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-full lg:w-80 xl:w-96 bg-[#223148] border-t lg:border-t-0 lg:border-l border-[#2f486d] flex flex-col overflow-y-auto max-h-[50vh] lg:max-h-none">
+        <div className="w-full lg:w-64 xl:w-72 bg-[#223148] border-t lg:border-t-0 lg:border-l border-[#2f486d] flex flex-col overflow-y-auto max-h-[50vh] lg:max-h-none">
           {/* Measurement Tools */}
           <div className="p-2 sm:p-3 border-b border-[#2f486d]">
             <h2 className="text-xs font-semibold text-[#f3eae0] mb-1.5 sm:mb-2">
