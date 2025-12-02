@@ -19,46 +19,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 
 export interface VaultConfig {
+  type?: string; // poço de visita, caixa de passagem, etc.
+  shape?: "rectangular" | "circular";
   dimensions?: {
-    length: number;
-    width: number;
-    depth: number;
+    length?: number; // m (para retangular)
+    width?: number; // m (para retangular)
+    diameter?: number; // m (para circular)
+    depth: number; // m
   };
-  holeSize?: {
-    length: number;
-    width: number;
-    depth: number;
-  };
-  spoilVolumeCY?: number;
-  asphaltRemovalCY?: number;
-  concreteRemovalCY?: number;
-  asphaltRestorationCY?: number;
-  concreteRestorationCY?: number;
-  backfillCY?: number;
-  backfillType?: string;
-  trafficRated?: boolean;
-}
-
-// Internal state interface for easier updates
-interface VaultConfigState {
-  dimensions?: {
-    length: number;
-    width: number;
-    depth: number;
-  };
-  holeSize?: {
-    length: number;
-    width: number;
-    depth: number;
-  };
-  spoilVolumeCY?: number;
-  asphaltRemovalCY?: number;
-  concreteRemovalCY?: number;
-  asphaltRestorationCY?: number;
-  concreteRestorationCY?: number;
-  backfillCY?: number;
-  backfillType?: string;
-  trafficRated?: boolean;
+  material?: string;
+  class?: string;
+  quantity?: number;
+  volume?: number; // m³ (opcional)
 }
 
 interface VaultConfigModalProps {
@@ -74,459 +46,452 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
   onConfirm,
   initialConfig,
 }) => {
-  const [config, setConfig] = useState<VaultConfigState>({});
+  const [config, setConfig] = useState<VaultConfig>({
+    type: "Poço de Visita",
+    shape: "rectangular",
+    dimensions: {
+      length: 1.2,
+      width: 1.2,
+      depth: 1.5,
+    },
+    material: "Concreto",
+    quantity: 1,
+  });
 
-  const [includeDimensions, setIncludeDimensions] = useState(false);
-  const [includeHoleSize, setIncludeHoleSize] = useState(false);
-  const [includeSpoilVolume, setIncludeSpoilVolume] = useState(false);
-  const [includeAsphaltRemoval, setIncludeAsphaltRemoval] = useState(false);
-  const [includeConcreteRemoval, setIncludeConcreteRemoval] = useState(false);
-  const [includeAsphaltRestoration, setIncludeAsphaltRestoration] =
-    useState(false);
-  const [includeConcreteRestoration, setIncludeConcreteRestoration] =
-    useState(false);
-  const [includeBackfill, setIncludeBackfill] = useState(false);
+  const [includeVolume, setIncludeVolume] = useState(false);
 
   useEffect(() => {
     if (initialConfig) {
       setConfig(initialConfig);
-      setIncludeDimensions(!!initialConfig.dimensions);
-      setIncludeHoleSize(!!initialConfig.holeSize);
-      setIncludeSpoilVolume(!!initialConfig.spoilVolumeCY);
-      setIncludeAsphaltRemoval(!!initialConfig.asphaltRemovalCY);
-      setIncludeConcreteRemoval(!!initialConfig.concreteRemovalCY);
-      setIncludeAsphaltRestoration(!!initialConfig.asphaltRestorationCY);
-      setIncludeConcreteRestoration(!!initialConfig.concreteRestorationCY);
-      setIncludeBackfill(!!initialConfig.backfillCY);
+      setIncludeVolume(!!initialConfig.volume);
+    } else {
+      setConfig({
+        type: "Poço de Visita",
+        shape: "rectangular",
+        dimensions: {
+          length: 1.2,
+          width: 1.2,
+          depth: 1.5,
+        },
+        material: "Concreto",
+        quantity: 1,
+      });
+      setIncludeVolume(false);
     }
-  }, [initialConfig]);
+  }, [initialConfig, isOpen]);
 
   const handleConfirm = () => {
     const finalConfig: VaultConfig = {
       ...config,
-      dimensions: includeDimensions ? config.dimensions : undefined,
-      holeSize: includeHoleSize ? config.holeSize : undefined,
-      spoilVolumeCY: includeSpoilVolume ? config.spoilVolumeCY : undefined,
-      asphaltRemovalCY: includeAsphaltRemoval
-        ? config.asphaltRemovalCY
-        : undefined,
-      concreteRemovalCY: includeConcreteRemoval
-        ? config.concreteRemovalCY
-        : undefined,
-      asphaltRestorationCY: includeAsphaltRestoration
-        ? config.asphaltRestorationCY
-        : undefined,
-      concreteRestorationCY: includeConcreteRestoration
-        ? config.concreteRestorationCY
-        : undefined,
-      backfillCY: includeBackfill ? config.backfillCY : undefined,
+      volume: includeVolume ? config.volume : undefined,
     };
     onConfirm(finalConfig);
   };
 
-  const backfillTypes = [
-    "Solo Nativo",
-    "Reaterro Fluido",
-    "Areia",
-    "Cascalho",
-    "Pedra Britada",
-    "Personalizado",
+  const vaultTypes = [
+    "Poço de Visita",
+    "Caixa de Passagem",
+    "Caixa de Inspeção",
+    "Caixa de Emenda",
+    "Caixa de Derivação",
+    "Outro",
+  ];
+
+  const materials = [
+    "Concreto",
+    "Concreto Armado",
+    "PVC",
+    "PEAD",
+    "Aço",
+    "Alumínio",
+    "Fibra de Vidro",
+    "Outro",
+  ];
+
+  const classes = [
+    "Classe A",
+    "Classe B",
+    "Classe C",
+    "Classe D",
+    "H-20",
+    "H-25",
+    "Outro",
   ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] sm:max-w-md md:max-w-lg w-full mx-2 sm:mx-4">
-        <DialogHeader>
+      <DialogContent className="max-w-[95vw] sm:max-w-sm md:max-w-md w-full mx-2 sm:mx-4">
+        <DialogHeader className="pb-2">
           <div className="flex justify-between items-center">
-            <DialogTitle>Configurar Câmara/Buraco de Mão</DialogTitle>
+            <DialogTitle className="text-sm">Câmara / Buraco de Mão</DialogTitle>
             <Button
               variant="outline"
-              onClick={() => setConfig({})}
-              className="text-sm"
+              onClick={() => {
+                setConfig({
+                  type: "Poço de Visita",
+                  shape: "rectangular",
+                  dimensions: {
+                    length: 1.2,
+                    width: 1.2,
+                    depth: 1.5,
+                  },
+                  material: "Concreto",
+                  quantity: 1,
+                });
+                setIncludeVolume(false);
+              }}
+              className="text-xs h-7 px-2"
             >
               Desfazer
             </Button>
           </div>
         </DialogHeader>
 
-        <div className="space-y-6 mt-4">
-          {/* Dimensions */}
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="include-dimensions"
-                checked={includeDimensions}
-                onCheckedChange={(checked) =>
-                  setIncludeDimensions(checked as boolean)
-                }
-              />
-              <Label htmlFor="include-dimensions">Dimensões da Câmara</Label>
-            </div>
-
-            {includeDimensions && (
-              <div className="grid grid-cols-3 gap-4 pl-6">
-                <div>
-                  <Label htmlFor="vault-length">Comprimento (ft)</Label>
-                  <Input
-                    id="vault-length"
-                    type="number"
-                    step="0.1"
-                    value={config.dimensions?.length || 0}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        dimensions: {
-                          length: parseFloat(e.target.value) || 0,
-                          width: prev.dimensions?.width || 0,
-                          depth: prev.dimensions?.depth || 0,
-                        },
-                      }))
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="vault-width">Largura (ft)</Label>
-                  <Input
-                    id="vault-width"
-                    type="number"
-                    step="0.1"
-                    value={config.dimensions?.width || 0}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        dimensions: {
-                          length: prev.dimensions?.length || 0,
-                          width: parseFloat(e.target.value) || 0,
-                          depth: prev.dimensions?.depth || 0,
-                        },
-                      }))
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="vault-depth">Profundidade (ft)</Label>
-                  <Input
-                    id="vault-depth"
-                    type="number"
-                    step="0.1"
-                    value={config.dimensions?.depth || 0}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        dimensions: {
-                          length: prev.dimensions?.length || 0,
-                          width: prev.dimensions?.width || 0,
-                          depth: parseFloat(e.target.value) || 0,
-                        },
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-            )}
+        <div className="space-y-3 mt-2 max-h-[70vh] overflow-y-auto pr-1">
+          {/* Descrição */}
+          <div className="space-y-0.5">
+            <p className="text-[11px] text-gray-600 leading-tight">
+              Infraestrutura pontual para acesso/inspeção.
+            </p>
           </div>
 
-          <Separator />
+          <Separator className="my-1.5" />
 
-          {/* Hole Size */}
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="include-hole-size"
-                checked={includeHoleSize}
-                onCheckedChange={(checked) =>
-                  setIncludeHoleSize(checked as boolean)
+          {/* Tipo */}
+          <div className="space-y-1.5">
+            <h3 className="text-[11px] font-semibold text-gray-900">
+              Tipo (poço de visita, caixa de passagem etc.)
+            </h3>
+            <div>
+              <Label htmlFor="vault-type" className="text-xs">Tipo</Label>
+              <Select
+                value={config.type || "Poço de Visita"}
+                onValueChange={(value) =>
+                  setConfig((prev) => ({ ...prev, type: value }))
                 }
-              />
-              <Label htmlFor="include-hole-size">Tamanho do Buraco</Label>
+              >
+                <SelectTrigger className="h-7 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {vaultTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-
-            {includeHoleSize && (
-              <div className="grid grid-cols-3 gap-4 pl-6">
-                <div>
-                  <Label htmlFor="hole-length">Comprimento (ft)</Label>
-                  <Input
-                    id="hole-length"
-                    type="number"
-                    step="0.1"
-                    value={config.holeSize?.length || 0}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        holeSize: {
-                          length: parseFloat(e.target.value) || 0,
-                          width: prev.holeSize?.width || 0,
-                          depth: prev.holeSize?.depth || 0,
-                        },
-                      }))
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="hole-width">Largura (ft)</Label>
-                  <Input
-                    id="hole-width"
-                    type="number"
-                    step="0.1"
-                    value={config.holeSize?.width || 0}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        holeSize: {
-                          length: prev.holeSize?.length || 0,
-                          width: parseFloat(e.target.value) || 0,
-                          depth: prev.holeSize?.depth || 0,
-                        },
-                      }))
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="hole-depth">Profundidade (ft)</Label>
-                  <Input
-                    id="hole-depth"
-                    type="number"
-                    step="0.1"
-                    value={config.holeSize?.depth || 0}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        holeSize: {
-                          length: prev.holeSize?.length || 0,
-                          width: prev.holeSize?.width || 0,
-                          depth: parseFloat(e.target.value) || 0,
-                        },
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
-          <Separator />
+          <Separator className="my-1.5" />
 
-          {/* Volumes */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-900">Volumes (CY)</h3>
-
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="include-spoil-volume"
-                  checked={includeSpoilVolume}
-                  onCheckedChange={(checked) =>
-                    setIncludeSpoilVolume(checked as boolean)
+          {/* Dimensões */}
+          <div className="space-y-1.5">
+            <h3 className="text-[11px] font-semibold text-gray-900">
+              Dimensões (retangular/circular)
+            </h3>
+            <div className="space-y-1.5">
+              <div>
+                <Label htmlFor="vault-shape" className="text-xs">Formato</Label>
+                <Select
+                  value={config.shape || "rectangular"}
+                  onValueChange={(value) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      shape: value as "rectangular" | "circular",
+                      dimensions: {
+                        ...prev.dimensions,
+                        length:
+                          value === "rectangular"
+                            ? prev.dimensions?.length || 1.2
+                            : undefined,
+                        width:
+                          value === "rectangular"
+                            ? prev.dimensions?.width || 1.2
+                            : undefined,
+                        diameter:
+                          value === "circular"
+                            ? prev.dimensions?.diameter || 1.2
+                            : undefined,
+                        depth: prev.dimensions?.depth || 1.5,
+                      },
+                    }))
                   }
-                />
-                <Label htmlFor="include-spoil-volume">
-                  Volume de Escavação (CY)
-                </Label>
+                >
+                  <SelectTrigger className="h-7 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="rectangular">Retangular</SelectItem>
+                    <SelectItem value="circular">Circular</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              {includeSpoilVolume && (
-                <div className="pl-6">
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={config.spoilVolumeCY || 0}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        spoilVolumeCY: parseFloat(e.target.value) || 0,
-                      }))
-                    }
-                  />
-                </div>
-              )}
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="include-asphalt-removal"
-                  checked={includeAsphaltRemoval}
-                  onCheckedChange={(checked) =>
-                    setIncludeAsphaltRemoval(checked as boolean)
-                  }
-                />
-                <Label htmlFor="include-asphalt-removal">
-                  Remoção de Asfalto (CY)
-                </Label>
-              </div>
-              {includeAsphaltRemoval && (
-                <div className="pl-6">
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={config.asphaltRemovalCY || 0}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        asphaltRemovalCY: parseFloat(e.target.value) || 0,
-                      }))
-                    }
-                  />
-                </div>
-              )}
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="include-concrete-removal"
-                  checked={includeConcreteRemoval}
-                  onCheckedChange={(checked) =>
-                    setIncludeConcreteRemoval(checked as boolean)
-                  }
-                />
-                <Label htmlFor="include-concrete-removal">
-                  Remoção de Concreto (CY)
-                </Label>
-              </div>
-              {includeConcreteRemoval && (
-                <div className="pl-6">
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={config.concreteRemovalCY || 0}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        concreteRemovalCY: parseFloat(e.target.value) || 0,
-                      }))
-                    }
-                  />
-                </div>
-              )}
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="include-asphalt-restoration"
-                  checked={includeAsphaltRestoration}
-                  onCheckedChange={(checked) =>
-                    setIncludeAsphaltRestoration(checked as boolean)
-                  }
-                />
-                <Label htmlFor="include-asphalt-restoration">
-                  Restauração de Asfalto (CY)
-                </Label>
-              </div>
-              {includeAsphaltRestoration && (
-                <div className="pl-6">
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={config.asphaltRestorationCY || 0}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        asphaltRestorationCY: parseFloat(e.target.value) || 0,
-                      }))
-                    }
-                  />
-                </div>
-              )}
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="include-concrete-restoration"
-                  checked={includeConcreteRestoration}
-                  onCheckedChange={(checked) =>
-                    setIncludeConcreteRestoration(checked as boolean)
-                  }
-                />
-                <Label htmlFor="include-concrete-restoration">
-                  Restauração de Concreto (CY)
-                </Label>
-              </div>
-              {includeConcreteRestoration && (
-                <div className="pl-6">
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={config.concreteRestorationCY || 0}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        concreteRestorationCY: parseFloat(e.target.value) || 0,
-                      }))
-                    }
-                  />
-                </div>
-              )}
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="include-backfill"
-                  checked={includeBackfill}
-                  onCheckedChange={(checked) =>
-                    setIncludeBackfill(checked as boolean)
-                  }
-                />
-                <Label htmlFor="include-backfill">Reaterro (CY)</Label>
-              </div>
-              {includeBackfill && (
-                <div className="space-y-3 pl-6">
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={config.backfillCY || 0}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        backfillCY: parseFloat(e.target.value) || 0,
-                      }))
-                    }
-                  />
+              {config.shape === "rectangular" ? (
+                <div className="grid grid-cols-2 gap-1.5">
                   <div>
-                    <Label htmlFor="backfill-type">Tipo de Reaterro</Label>
-                    <Select
-                      value={config.backfillType || "Solo Nativo"}
+                    <Label htmlFor="vault-length" className="text-xs">
+                      Comprimento (m)
+                    </Label>
+                    <Input
+                      id="vault-length"
+                      type="number"
+                      step="0.01"
+                      value={config.dimensions?.length || 0}
                       onChange={(e) =>
                         setConfig((prev) => ({
                           ...prev,
-                          backfillType: e.target.value,
+                          dimensions: {
+                            ...prev.dimensions,
+                            length: parseFloat(e.target.value) || 0,
+                            width: prev.dimensions?.width || 1.2,
+                            depth: prev.dimensions?.depth || 1.5,
+                          },
                         }))
                       }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {backfillTypes.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      className="h-7 text-xs"
+                    />
                   </div>
+                  <div>
+                    <Label htmlFor="vault-width" className="text-xs">
+                      Largura (m)
+                    </Label>
+                    <Input
+                      id="vault-width"
+                      type="number"
+                      step="0.01"
+                      value={config.dimensions?.width || 0}
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          dimensions: {
+                            ...prev.dimensions,
+                            length: prev.dimensions?.length || 1.2,
+                            width: parseFloat(e.target.value) || 0,
+                            depth: prev.dimensions?.depth || 1.5,
+                          },
+                        }))
+                      }
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <Label htmlFor="vault-diameter" className="text-xs">
+                    Diâmetro (m)
+                  </Label>
+                  <Input
+                    id="vault-diameter"
+                    type="number"
+                    step="0.01"
+                    value={config.dimensions?.diameter || 0}
+                    onChange={(e) =>
+                      setConfig((prev) => ({
+                        ...prev,
+                        dimensions: {
+                          ...prev.dimensions,
+                          diameter: parseFloat(e.target.value) || 0,
+                          depth: prev.dimensions?.depth || 1.5,
+                        },
+                      }))
+                    }
+                    className="h-7 text-xs"
+                  />
                 </div>
               )}
             </div>
           </div>
 
-          <Separator />
+          <Separator className="my-1.5" />
 
-          {/* Traffic Rated */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="traffic-rated"
-              checked={config.trafficRated || false}
-              onCheckedChange={(checked) =>
-                setConfig((prev) => ({
-                  ...prev,
-                  trafficRated: checked as boolean,
-                }))
-              }
-            />
-            <Label htmlFor="traffic-rated">Classificado para Tráfego</Label>
+          {/* Profundidade */}
+          <div className="space-y-1.5">
+            <h3 className="text-[11px] font-semibold text-gray-900">
+              Profundidade
+            </h3>
+            <div>
+              <Label htmlFor="vault-depth" className="text-xs">
+                Profundidade (m)
+              </Label>
+              <Input
+                id="vault-depth"
+                type="number"
+                step="0.01"
+                value={config.dimensions?.depth || 0}
+                onChange={(e) =>
+                  setConfig((prev) => ({
+                    ...prev,
+                    dimensions: {
+                      ...prev.dimensions,
+                      depth: parseFloat(e.target.value) || 0,
+                    },
+                  }))
+                }
+                className="h-7 text-xs"
+              />
+            </div>
+          </div>
+
+          <Separator className="my-1.5" />
+
+          {/* Material/Classe */}
+          <div className="space-y-1.5">
+            <h3 className="text-[11px] font-semibold text-gray-900">
+              Material/Classe
+            </h3>
+            <div className="space-y-1.5">
+              <div>
+                <Label htmlFor="vault-material" className="text-xs">
+                  Material
+                </Label>
+                <Select
+                  value={config.material || "Concreto"}
+                  onValueChange={(value) =>
+                    setConfig((prev) => ({ ...prev, material: value }))
+                  }
+                >
+                  <SelectTrigger className="h-7 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {materials.map((material) => (
+                      <SelectItem key={material} value={material}>
+                        {material}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="vault-class" className="text-xs">
+                  Classe
+                </Label>
+                <Select
+                  value={config.class || ""}
+                  onValueChange={(value) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      class: value || undefined,
+                    }))
+                  }
+                >
+                  <SelectTrigger className="h-7 text-xs">
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">N/A</SelectItem>
+                    {classes.map((cls) => (
+                      <SelectItem key={cls} value={cls}>
+                        {cls}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <Separator className="my-1.5" />
+
+          {/* Quantidade */}
+          <div className="space-y-1.5">
+            <h3 className="text-[11px] font-semibold text-gray-900">
+              Quantidade
+            </h3>
+            <div>
+              <Label htmlFor="vault-quantity" className="text-xs">
+                Quantidade
+              </Label>
+              <Input
+                id="vault-quantity"
+                type="number"
+                min="1"
+                value={config.quantity || 1}
+                onChange={(e) =>
+                  setConfig((prev) => ({
+                    ...prev,
+                    quantity: parseInt(e.target.value) || 1,
+                  }))
+                }
+                className="h-7 text-xs"
+              />
+            </div>
+          </div>
+
+          <Separator className="my-1.5" />
+
+          {/* Volume (Opcional) */}
+          <div className="space-y-1.5">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="include-volume"
+                checked={includeVolume}
+                onCheckedChange={(checked) => {
+                  setIncludeVolume(checked as boolean);
+                  if (checked && !config.volume) {
+                    setConfig((prev) => ({ ...prev, volume: 0 }));
+                  } else if (!checked) {
+                    setConfig((prev) => ({ ...prev, volume: undefined }));
+                  }
+                }}
+                className="h-4 w-4"
+              />
+              <Label htmlFor="include-volume" className="text-[11px] leading-tight">
+                Volume da estrutura (opcional)
+              </Label>
+            </div>
+            {includeVolume && (
+              <div className="pl-5">
+                <Label htmlFor="vault-volume" className="text-xs">
+                  Volume (m³)
+                </Label>
+                <Input
+                  id="vault-volume"
+                  type="number"
+                  step="0.01"
+                  value={config.volume || 0}
+                  onChange={(e) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      volume: parseFloat(e.target.value) || 0,
+                    }))
+                  }
+                  className="h-7 text-xs"
+                  placeholder="Será calculado automaticamente"
+                />
+                <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">
+                  Será calculado automaticamente com base nas dimensões
+                </p>
+              </div>
+            )}
+          </div>
+
+          <Separator className="my-1.5" />
+
+          {/* Resultado Principal */}
+          <div className="space-y-0.5">
+            <h3 className="text-[11px] font-semibold text-gray-900">
+              Resultado principal
+            </h3>
+            <p className="text-[11px] text-gray-600 leading-tight">
+              Contagem + volume da estrutura (opcional).
+            </p>
           </div>
         </div>
 
-        <div className="flex justify-end space-x-2 pt-4">
-          <Button variant="outline" onClick={onClose}>
+        <div className="flex justify-end space-x-2 pt-2 mt-2">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="h-7 text-xs px-3"
+          >
             Cancelar
           </Button>
           <Button
             onClick={handleConfirm}
-            className="bg-[#2f486d] hover:bg-[#3d5a7d] text-[#f3eae0]"
+            className="bg-[#2f486d] hover:bg-[#3d5a7d] text-[#f3eae0] h-7 text-xs px-3"
           >
             Confirmar
           </Button>
