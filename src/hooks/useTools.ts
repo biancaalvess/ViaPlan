@@ -4,6 +4,7 @@ import { BoreShotConfig } from '../components/BoreShotConfigModal';
 import { ConduitConfig } from '../components/ConduitConfigModal';
 import { HydroExcavationConfig } from '../components/HydroExcavationConfigModal';
 import { VaultConfig } from '../components/VaultConfigModal';
+import { AreaConfig } from '../components/AreaConfigModal';
 
 export const useTools = () => {
   const [activeTool, setActiveTool] = useState<string>('');
@@ -12,6 +13,7 @@ export const useTools = () => {
   const [conduitConfig, setConduitConfig] = useState<ConduitConfig | null>(null);
   const [hydroExcavationConfig, setHydroExcavationConfig] = useState<HydroExcavationConfig | null>(null);
   const [vaultConfig, setVaultConfig] = useState<VaultConfig | null>(null);
+  const [areaConfig, setAreaConfig] = useState<AreaConfig | null>(null);
 
   const handleToolSelect = useCallback((tool: string) => {
     if (tool === activeTool) {
@@ -44,6 +46,11 @@ export const useTools = () => {
   const setVaultConfiguration = useCallback((config: VaultConfig) => {
     setVaultConfig(config);
     setActiveTool('vault');
+  }, []);
+
+  const setAreaConfiguration = useCallback((config: AreaConfig) => {
+    setAreaConfig(config);
+    setActiveTool('area');
   }, []);
 
   const clearTrenchConfig = useCallback(() => {
@@ -81,12 +88,20 @@ export const useTools = () => {
     }
   }, [activeTool]);
 
+  const clearAreaConfig = useCallback(() => {
+    setAreaConfig(null);
+    if (activeTool === 'area') {
+      setActiveTool('');
+    }
+  }, [activeTool]);
+
   const clearAllConfigs = useCallback(() => {
     setTrenchConfig(null);
     setBoreShotConfig(null);
     setConduitConfig(null);
     setHydroExcavationConfig(null);
     setVaultConfig(null);
+    setAreaConfig(null);
     setActiveTool('');
   }, []);
 
@@ -97,17 +112,20 @@ export const useTools = () => {
     conduitConfig,
     hydroExcavationConfig,
     vaultConfig,
+    areaConfig,
     handleToolSelect,
     setTrenchConfiguration,
     setBoreShotConfiguration,
     setConduitConfiguration,
     setHydroExcavationConfiguration,
     setVaultConfiguration,
+    setAreaConfiguration,
     clearTrenchConfig,
     clearBoreShotConfig,
     clearConduitConfig,
     clearHydroExcavationConfig,
     clearVaultConfig,
+    clearAreaConfig,
     clearAllConfigs,
   };
 };

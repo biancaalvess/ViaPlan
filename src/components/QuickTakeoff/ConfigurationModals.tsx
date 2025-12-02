@@ -12,6 +12,7 @@ import HydroExcavationConfigModal, {
   HydroExcavationConfig,
 } from '@/components/HydroExcavationConfigModal';
 import VaultConfigModal, { VaultConfig } from '@/components/VaultConfigModal';
+import AreaConfigModal, { AreaConfig } from '@/components/AreaConfigModal';
 
 interface ConfigurationModalsProps {
   showTrenchConfig: boolean;
@@ -19,21 +20,25 @@ interface ConfigurationModalsProps {
   showConduitConfig: boolean;
   showHydroExcavationConfig: boolean;
   showVaultConfig: boolean;
+  showAreaConfig: boolean;
   trenchConfig: TrenchConfig | null;
   boreShotConfig: BoreShotConfig | null;
   conduitConfig: ConduitConfig | null;
   hydroExcavationConfig: HydroExcavationConfig | null;
   vaultConfig: VaultConfig | null;
+  areaConfig: AreaConfig | null;
   onTrenchConfigClose: () => void;
   onBoreShotConfigClose: () => void;
   onConduitConfigClose: () => void;
   onHydroExcavationConfigClose: () => void;
   onVaultConfigClose: () => void;
+  onAreaConfigClose: () => void;
   onTrenchConfigConfirm: (config: TrenchConfig) => void;
   onBoreShotConfigConfirm: (config: BoreShotConfig) => void;
   onConduitConfigConfirm: (config: ConduitConfig) => void;
   onHydroExcavationConfigConfirm: (config: HydroExcavationConfig) => void;
   onVaultConfigConfirm: (config: VaultConfig) => void;
+  onAreaConfigConfirm: (config: AreaConfig) => void;
 }
 
 export const ConfigurationModals: React.FC<ConfigurationModalsProps> = ({
@@ -42,21 +47,25 @@ export const ConfigurationModals: React.FC<ConfigurationModalsProps> = ({
   showConduitConfig,
   showHydroExcavationConfig,
   showVaultConfig,
+  showAreaConfig,
   trenchConfig,
   boreShotConfig,
   conduitConfig,
   hydroExcavationConfig,
   vaultConfig,
+  areaConfig,
   onTrenchConfigClose,
   onBoreShotConfigClose,
   onConduitConfigClose,
   onHydroExcavationConfigClose,
   onVaultConfigClose,
+  onAreaConfigClose,
   onTrenchConfigConfirm,
   onBoreShotConfigConfirm,
   onConduitConfigConfirm,
   onHydroExcavationConfigConfirm,
   onVaultConfigConfirm,
+  onAreaConfigConfirm,
 }) => {
   return (
     <>
@@ -93,6 +102,13 @@ export const ConfigurationModals: React.FC<ConfigurationModalsProps> = ({
         onClose={onVaultConfigClose}
         onConfirm={onVaultConfigConfirm}
         initialConfig={vaultConfig}
+      />
+
+      <AreaConfigModal
+        isOpen={showAreaConfig}
+        onClose={onAreaConfigClose}
+        onConfirm={onAreaConfigConfirm}
+        initialConfig={areaConfig}
       />
     </>
   );

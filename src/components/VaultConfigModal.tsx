@@ -123,7 +123,9 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
       <DialogContent className="max-w-[95vw] sm:max-w-sm md:max-w-md w-full mx-2 sm:mx-4">
         <DialogHeader className="pb-2">
           <div className="flex justify-between items-center">
-            <DialogTitle className="text-sm">Câmara / Buraco de Mão</DialogTitle>
+            <DialogTitle className="text-sm">
+              Câmara / Buraco de Mão
+            </DialogTitle>
             <Button
               variant="outline"
               onClick={() => {
@@ -163,7 +165,9 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
               Tipo (poço de visita, caixa de passagem etc.)
             </h3>
             <div>
-              <Label htmlFor="vault-type" className="text-xs">Tipo</Label>
+              <Label htmlFor="vault-type" className="text-xs">
+                Tipo
+              </Label>
               <Select
                 value={config.type || "Poço de Visita"}
                 onValueChange={(value) =>
@@ -193,7 +197,9 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
             </h3>
             <div className="space-y-1.5">
               <div>
-                <Label htmlFor="vault-shape" className="text-xs">Formato</Label>
+                <Label htmlFor="vault-shape" className="text-xs">
+                  Formato
+                </Label>
                 <Select
                   value={config.shape || "rectangular"}
                   onValueChange={(value) =>
@@ -438,7 +444,10 @@ const VaultConfigModal: React.FC<VaultConfigModalProps> = ({
                 }}
                 className="h-4 w-4"
               />
-              <Label htmlFor="include-volume" className="text-[11px] leading-tight">
+              <Label
+                htmlFor="include-volume"
+                className="text-[11px] leading-tight"
+              >
                 Volume da estrutura (opcional)
               </Label>
             </div>

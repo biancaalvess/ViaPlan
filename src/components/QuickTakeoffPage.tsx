@@ -55,17 +55,20 @@ const QuickTakeoffPage = () => {
     conduitConfig,
     hydroExcavationConfig,
     vaultConfig,
+    areaConfig,
     handleToolSelect,
     setTrenchConfiguration,
     setBoreShotConfiguration,
     setConduitConfiguration,
     setHydroExcavationConfiguration,
     setVaultConfiguration,
+    setAreaConfiguration,
     clearTrenchConfig,
     clearBoreShotConfig,
     clearConduitConfig,
     clearHydroExcavationConfig,
     clearVaultConfig,
+    clearAreaConfig,
   } = useTools();
   const { exportToCSV, exportToJSON } = useExport();
 
@@ -76,6 +79,7 @@ const QuickTakeoffPage = () => {
   const [showHydroExcavationConfig, setShowHydroExcavationConfig] =
     useState(false);
   const [showVaultConfig, setShowVaultConfig] = useState(false);
+  const [showAreaConfig, setShowAreaConfig] = useState(false);
 
   useEffect(() => {
     const plantId = searchParams.get("plant");
@@ -113,6 +117,10 @@ const QuickTakeoffPage = () => {
       setShowVaultConfig(true);
       return;
     }
+    if (tool === "area" && !areaConfig) {
+      setShowAreaConfig(true);
+      return;
+    }
     handleToolSelect(tool);
   };
 
@@ -139,6 +147,11 @@ const QuickTakeoffPage = () => {
   const handleVaultConfigConfirm = (config: any) => {
     setVaultConfiguration(config);
     setShowVaultConfig(false);
+  };
+
+  const handleAreaConfigConfirm = (config: any) => {
+    setAreaConfiguration(config);
+    setShowAreaConfig(false);
   };
 
   const handleAddMeasurement = (measurement: any) => {
@@ -246,6 +259,7 @@ const QuickTakeoffPage = () => {
       onClear: clearHydroExcavationConfig,
     },
     vaultConfig && { name: "Câmara/Buraco de Mão", onClear: clearVaultConfig },
+    areaConfig && { name: "Área", onClear: clearAreaConfig },
   ].filter((config): config is { name: string; onClear: () => void } =>
     Boolean(config)
   );
@@ -506,21 +520,25 @@ const QuickTakeoffPage = () => {
         showConduitConfig={showConduitConfig}
         showHydroExcavationConfig={showHydroExcavationConfig}
         showVaultConfig={showVaultConfig}
+        showAreaConfig={showAreaConfig}
         trenchConfig={trenchConfig}
         boreShotConfig={boreShotConfig}
         conduitConfig={conduitConfig}
         hydroExcavationConfig={hydroExcavationConfig}
         vaultConfig={vaultConfig}
+        areaConfig={areaConfig}
         onTrenchConfigClose={() => setShowTrenchConfig(false)}
         onBoreShotConfigClose={() => setShowBoreShotConfig(false)}
         onConduitConfigClose={() => setShowConduitConfig(false)}
         onHydroExcavationConfigClose={() => setShowHydroExcavationConfig(false)}
         onVaultConfigClose={() => setShowVaultConfig(false)}
+        onAreaConfigClose={() => setShowAreaConfig(false)}
         onTrenchConfigConfirm={handleTrenchConfigConfirm}
         onBoreShotConfigConfirm={handleBoreShotConfigConfirm}
         onConduitConfigConfirm={handleConduitConfigConfirm}
         onHydroExcavationConfigConfirm={handleHydroExcavationConfigConfirm}
         onVaultConfigConfirm={handleVaultConfigConfirm}
+        onAreaConfigConfirm={handleAreaConfigConfirm}
       />
     </div>
   );
