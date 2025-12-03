@@ -236,6 +236,22 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     setIsDragging(false);
   };
 
+  // Função para zoom com roda do mouse
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    // Permitir zoom sempre, mas usar Ctrl+Wheel para zoom quando ferramenta estiver ativa
+    if (activeTool && activeTool !== 'select' && !e.ctrlKey) {
+      return;
+    }
+
+    e.preventDefault();
+    
+    // Determinar direção do scroll (deltaY negativo = zoom in, positivo = zoom out)
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    const newZoomLevel = Math.max(0.1, Math.min(5, zoomLevel + delta));
+    
+    setZoomLevel(newZoomLevel);
+  };
+
   // Função para resetar zoom e pan
   const resetView = () => {
     if (containerRef.current && pageDimensions.width > 0 && pageDimensions.height > 0) {
@@ -369,6 +385,11 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
 
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!activeTool) return;
+    
+    // A ferramenta "select" não deve desenhar, apenas selecionar
+    if (activeTool === 'select') {
+      return;
+    }
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -398,6 +419,11 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
 
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing || !activeTool) return;
+    
+    // A ferramenta "select" não deve desenhar
+    if (activeTool === 'select') {
+      return;
+    }
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -485,6 +511,13 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
 
   const handleCanvasMouseUp = () => {
     if (!isDrawing || !activeTool) return;
+    
+    // A ferramenta "select" não deve criar medições
+    if (activeTool === 'select') {
+      setIsDrawing(false);
+      setDrawingPoints([]);
+      return;
+    }
 
     console.log('Mouse up, drawing points:', drawingPoints);
     setIsDrawing(false);
@@ -819,6 +852,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        onWheel={handleWheel}
         style={{
           cursor: activeTool
             ? 'crosshair'
@@ -895,7 +929,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
                   style={{
                     width: `${pageDimensions.width * zoom * zoomLevel}px`,
                     height: `${pageDimensions.height * zoom * zoomLevel}px`,
-                    cursor: activeTool ? 'crosshair' : 'default',
+                    cursor: activeTool === 'select' ? 'default' : activeTool ? 'crosshair' : 'default',
                     pointerEvents: activeTool ? 'auto' : 'none',
                     zIndex: 10,
                     top: '50%',
@@ -1073,7 +1107,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
                     style={{
                       width: `${pageDimensions.width * zoom * zoomLevel}px`,
                       height: `${pageDimensions.height * zoom * zoomLevel}px`,
-                      cursor: activeTool ? 'crosshair' : 'default',
+                      cursor: activeTool === 'select' ? 'default' : activeTool ? 'crosshair' : 'default',
                       pointerEvents: activeTool ? 'auto' : 'none',
                       zIndex: 10,
                     }}
