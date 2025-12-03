@@ -708,14 +708,30 @@ const QuickTakeoffPage = () => {
                   };
                   
                   const safeUnit = (): string => {
-                    if (!measurement.unit) return 'ft';
-                    if (typeof measurement.unit === 'string') return measurement.unit;
+                    if (!measurement.unit) return 'm';
+                    if (typeof measurement.unit === 'string') {
+                      // Converter unidades antigas para novas
+                      if (measurement.unit === 'ft') return 'm';
+                      if (measurement.unit === 'ft²' || measurement.unit === 'sq ft') return 'm²';
+                      if (measurement.unit === 'CY' || measurement.unit === 'cy') return 'm³';
+                      return measurement.unit;
+                    }
                     if (typeof measurement.unit === 'object' && measurement.unit !== null) {
                       // Se unit for um objeto, tentar extrair o valor
                       if ('value' in measurement.unit) return String(measurement.unit.value);
                       if ('type' in measurement.unit) return String(measurement.unit.type);
                     }
                     return String(measurement.unit);
+                  };
+                  
+                  const getAreaUnit = (): string => {
+                    const unit = safeUnit();
+                    if (unit === 'm' || unit === 'ft') return 'm²';
+                    return unit;
+                  };
+                  
+                  const getVolumeUnit = (): string => {
+                    return 'm³';
                   };
                   
                   return (
@@ -745,17 +761,17 @@ const QuickTakeoffPage = () => {
                           )}
                           {measurement.area !== undefined && measurement.area !== null && (
                             <p className="text-[10px] text-[#f3eae0] font-semibold">
-                              Área: {typeof measurement.area === 'number' ? measurement.area.toFixed(2) : safeString(measurement.area)} {safeUnit()}
+                              Área: {typeof measurement.area === 'number' ? measurement.area.toFixed(2) : safeString(measurement.area)} m²
                             </p>
                           )}
                           {measurement.trenchWidth && measurement.trenchDepth && (
                             <p className="text-[9px] text-[#d2c7b8]">
-                              {typeof measurement.trenchWidth === 'number' ? measurement.trenchWidth : String(measurement.trenchWidth)}' × {typeof measurement.trenchDepth === 'number' ? measurement.trenchDepth : String(measurement.trenchDepth)}'
+                              {typeof measurement.trenchWidth === 'number' ? measurement.trenchWidth : String(measurement.trenchWidth)} m × {typeof measurement.trenchDepth === 'number' ? measurement.trenchDepth : String(measurement.trenchDepth)} m
                             </p>
                           )}
                           {measurement.spoilVolumeCY !== undefined && measurement.spoilVolumeCY !== null && (
                             <p className="text-[9px] text-[#d2c7b8]">
-                              Volume: {typeof measurement.spoilVolumeCY === 'number' ? measurement.spoilVolumeCY.toFixed(2) : String(measurement.spoilVolumeCY)} CY
+                              Volume: {typeof measurement.spoilVolumeCY === 'number' ? measurement.spoilVolumeCY.toFixed(2) : String(measurement.spoilVolumeCY)} m³
                             </p>
                           )}
                         </div>

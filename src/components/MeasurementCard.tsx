@@ -161,10 +161,10 @@ export function MeasurementCard({
       {measurement.length && (
         <>
           <div className='text-xs font-semibold text-muted-foreground'>
-            Length:
+            Comprimento:
           </div>
           <div className='text-sm'>
-            {measurement.length.toFixed(2)} {measurement.unit}
+            {measurement.length.toFixed(2)} {measurement.unit === 'ft' ? 'm' : (measurement.unit === 'ft²' || measurement.unit === 'sq ft' ? 'm²' : measurement.unit)}
           </div>
         </>
       )}
@@ -172,10 +172,10 @@ export function MeasurementCard({
       {measurement.trenchWidth && measurement.trenchDepth && (
         <>
           <div className='text-xs font-semibold text-muted-foreground'>
-            Dimensions:
+            Largura × Profundidade:
           </div>
           <div className='text-sm'>
-            {measurement.trenchWidth}′ × {measurement.trenchDepth}′
+            {measurement.trenchWidth} m × {measurement.trenchDepth} m
           </div>
         </>
       )}
@@ -184,14 +184,14 @@ export function MeasurementCard({
         <>
           <div className='text-xs font-semibold text-muted-foreground'>
             {measurement.type === 'hydro-excavation-trench'
-              ? 'Mud Spoil Volume:'
-              : 'Spoil Volume:'}
+              ? 'Volume de Lama:'
+              : 'Volume de Escavação:'}
           </div>
           <div className='text-sm'>
             {measurement.type === 'hydro-excavation-trench'
               ? (measurement.spoilVolumeCY * 2).toFixed(2)
               : measurement.spoilVolumeCY.toFixed(2)}{' '}
-            CY
+            m³
           </div>
         </>
       )}
@@ -199,10 +199,10 @@ export function MeasurementCard({
       {measurement.backfill && (
         <>
           <div className='text-xs font-semibold text-muted-foreground'>
-            Backfill Volume:
+            Volume de Reaterro:
           </div>
           <div className='text-sm'>
-            {measurement.backfill.volumeCY.toFixed(2)} CY (
+            {measurement.backfill.volumeCY.toFixed(2)} m³ (
             {measurement.backfill.customType || measurement.backfill.type})
           </div>
         </>
@@ -219,10 +219,10 @@ export function MeasurementCard({
       {measurement.length && (
         <>
           <div className='text-xs font-semibold text-muted-foreground'>
-            Length:
+            Comprimento:
           </div>
           <div className='text-sm'>
-            {measurement.length.toFixed(2)} {measurement.unit}
+            {measurement.length.toFixed(2)} {measurement.unit === 'ft' ? 'm' : (measurement.unit === 'ft²' || measurement.unit === 'sq ft' ? 'm²' : measurement.unit)}
           </div>
         </>
       )}
@@ -234,36 +234,40 @@ export function MeasurementCard({
   const renderPotholeFields = () => {
     if (!measurement.hydroPotholingData) return null;
 
-    // Calculate mud volume for pothole
-    const radius = 8 / 12 / 2; // 8" diameter converted to feet, then to radius
-    const depthInFeet =
+    // Calcular volume de lama para pothole
+    // 8" = 0.2032m de diâmetro, raio = 0.1016m
+    const radius = 0.1016; // raio em metros
+    const depthInMeters =
       measurement.hydroPotholingData.depthUnit === 'inches'
-        ? measurement.hydroPotholingData.averageDepth / 12
-        : measurement.hydroPotholingData.averageDepth;
-    const volumeCF = Math.PI * radius * radius * depthInFeet;
-    const volumeCY = (volumeCF / 27) * 2; // Convert to CY and multiply by 2
+        ? (measurement.hydroPotholingData.averageDepth * 0.0254) // converter polegadas para metros
+        : (measurement.hydroPotholingData.averageDepth * 0.3048); // converter pés para metros
+    const volumeM3 = Math.PI * radius * radius * depthInMeters;
 
     return (
       <>
         <div className='text-xs font-semibold text-muted-foreground'>
-          Surface Type:
+          Tipo de Superfície:
         </div>
         <div className='text-sm'>
-          {measurement.hydroPotholingData.surfaceType}
+          {measurement.hydroPotholingData.surfaceType === 'asphalt' ? 'Asfalto' :
+           measurement.hydroPotholingData.surfaceType === 'concrete' ? 'Concreto' :
+           measurement.hydroPotholingData.surfaceType === 'dirt' ? 'Terra' :
+           measurement.hydroPotholingData.surfaceType}
         </div>
 
         <div className='text-xs font-semibold text-muted-foreground'>
-          Depth:
+          Profundidade:
         </div>
         <div className='text-sm'>
-          {measurement.hydroPotholingData.averageDepth}{' '}
-          {measurement.hydroPotholingData.depthUnit}
+          {measurement.hydroPotholingData.depthUnit === 'inches' 
+            ? `${(measurement.hydroPotholingData.averageDepth * 0.0254).toFixed(2)} m`
+            : `${(measurement.hydroPotholingData.averageDepth * 0.3048).toFixed(2)} m`}
         </div>
 
         <div className='text-xs font-semibold text-muted-foreground'>
-          Mud Spoil Volume:
+          Volume de Lama:
         </div>
-        <div className='text-sm'>{volumeCY.toFixed(2)} CY</div>
+        <div className='text-sm'>{volumeM3.toFixed(2)} m³</div>
       </>
     );
   };
@@ -272,34 +276,34 @@ export function MeasurementCard({
     const details = [];
 
     if (measurement.vaultSpoilVolumeCY && measurement.vaultSpoilVolumeCY > 0) {
-      details.push('Spoil Excavation');
+      details.push('Escavação');
     }
     if (
       measurement.vaultAsphaltRemovalCY &&
       measurement.vaultAsphaltRemovalCY > 0
     ) {
-      details.push('Asphalt Removal');
+      details.push('Remoção de Asfalto');
     }
     if (
       measurement.vaultConcreteRemovalCY &&
       measurement.vaultConcreteRemovalCY > 0
     ) {
-      details.push('Concrete Removal');
+      details.push('Remoção de Concreto');
     }
     if (
       measurement.vaultAsphaltRestorationCY &&
       measurement.vaultAsphaltRestorationCY > 0
     ) {
-      details.push('Asphalt Restoration');
+      details.push('Restauração de Asfalto');
     }
     if (
       measurement.vaultConcreteRestorationCY &&
       measurement.vaultConcreteRestorationCY > 0
     ) {
-      details.push('Concrete Restoration');
+      details.push('Restauração de Concreto');
     }
     if (measurement.vaultBackfillCY && measurement.vaultBackfillCY > 0) {
-      details.push(`Backfill (${measurement.vaultBackfillType || 'Unknown'})`);
+      details.push(`Reaterro (${measurement.vaultBackfillType || 'Desconhecido'})`);
     }
 
     return (
@@ -319,7 +323,7 @@ export function MeasurementCard({
         {details.length > 0 && (
           <>
             <div className='text-xs font-semibold text-muted-foreground'>
-              Operations:
+              Operações:
             </div>
             <div className='text-sm'>{details.join(', ')}</div>
           </>
@@ -329,10 +333,10 @@ export function MeasurementCard({
           measurement.vaultSpoilVolumeCY > 0 && (
             <>
               <div className='text-xs font-semibold text-muted-foreground'>
-                Spoil Volume:
+                Volume de Escavação:
               </div>
               <div className='text-sm'>
-                {measurement.vaultSpoilVolumeCY.toFixed(2)} CY
+                {measurement.vaultSpoilVolumeCY.toFixed(2)} m³
               </div>
             </>
           )}
@@ -345,10 +349,10 @@ export function MeasurementCard({
       {measurement.length && (
         <>
           <div className='text-xs font-semibold text-muted-foreground'>
-            Length:
+            Comprimento:
           </div>
           <div className='text-sm'>
-            {measurement.length.toFixed(2)} {measurement.unit}
+            {measurement.length.toFixed(2)} {measurement.unit === 'ft' ? 'm' : (measurement.unit === 'ft²' || measurement.unit === 'sq ft' ? 'm²' : measurement.unit)}
           </div>
         </>
       )}

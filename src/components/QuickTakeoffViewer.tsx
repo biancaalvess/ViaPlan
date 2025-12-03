@@ -808,7 +808,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
       label: `${activeTool.charAt(0).toUpperCase() + activeTool.slice(1)} ${measurements.filter(m => m.type === activeTool).length + 1}`,
       coordinates: points,
       length,
-      unit: 'ft',
+      unit: 'm',
       color: selectedColor || getToolColor(activeTool),
       notes: '',
     };
@@ -927,7 +927,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     width: number,
     depth: number
   ): number => {
-    return (length * width * depth) / 27; // Convert to cubic yards
+    return length * width * depth; // Volume em metros cúbicos (m³)
   };
 
   const calculateAsphaltVolume = (
@@ -935,7 +935,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     width: number,
     thickness: number
   ): number => {
-    return (length * width * thickness) / 27;
+    return length * width * thickness; // Volume em metros cúbicos (m³)
   };
 
   const calculateConcreteVolume = (
@@ -943,7 +943,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     width: number,
     thickness: number
   ): number => {
-    return (length * width * thickness) / 27;
+    return length * width * thickness; // Volume em metros cúbicos (m³)
   };
 
   const calculateBackfillVolume = (
@@ -951,7 +951,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     width: number,
     depth: number
   ): number => {
-    return (length * width * depth) / 27;
+    return length * width * depth; // Volume em metros cúbicos (m³)
   };
 
   // Draw measurements on canvas
@@ -1026,7 +1026,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
           measurement.coordinates[
             Math.floor(measurement.coordinates.length / 2)
           ];
-        const text = `${measurement.length.toFixed(2)}'`;
+        const text = `${measurement.length.toFixed(2)} m`;
         ctx.font = 'bold 14px Arial';
         const textMetrics = ctx.measureText(text);
         const textWidth = textMetrics.width;
