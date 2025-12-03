@@ -61,8 +61,19 @@ const QuickTakeoffPage = () => {
 
   // Custom hooks
   const { loadPlantFromId } = usePlants();
-  const { measurements, addMeasurement, deleteMeasurement, clearMeasurements } =
-    useMeasurements();
+  const { 
+    measurements, 
+    addMeasurement, 
+    deleteMeasurement, 
+    clearMeasurements,
+    updateMeasurement,
+    moveMeasurement,
+    moveMeasurements,
+    resizeMeasurement,
+    groupMeasurements,
+    ungroupMeasurements,
+    filterMeasurements,
+  } = useMeasurements();
   const { canUndo, undoLastAction, saveAction } = useActionHistory();
   const measurementsRef = useRef(measurements);
   
@@ -515,6 +526,7 @@ const QuickTakeoffPage = () => {
               activeTool={activeTool}
               measurements={measurements}
               onAddMeasurement={handleAddMeasurement}
+              onUpdateMeasurement={updateMeasurement}
               scale={scale}
               zoom={zoom}
               selectedColor={selectedColor}
@@ -621,6 +633,50 @@ const QuickTakeoffPage = () => {
               </div>
             )}
           </div>
+
+          {/* Ferramentas de Seleção - quando select está ativo */}
+          {activeTool === 'select' && (
+            <div className="p-2 sm:p-3 border-b border-[#2f486d]">
+              <h2 className="text-xs font-semibold text-[#f3eae0] mb-1.5 sm:mb-2">
+                Ferramentas de Edição
+              </h2>
+              <div className="space-y-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    // Agrupar medições selecionadas
+                    // Nota: A seleção será gerenciada no QuickTakeoffViewer
+                    toast({
+                      title: "Agrupar",
+                      description: "Selecione múltiplas medições (Shift+Click) e clique em Agrupar",
+                    });
+                  }}
+                  className="w-full bg-[#2f486d] border-[#3d5a7d] text-[#f3eae0] hover:bg-[#3d5a7d] text-xs"
+                >
+                  Agrupar Selecionadas
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    // Filtrar medições
+                    const filtered = filterMeasurements({});
+                    toast({
+                      title: "Filtrar",
+                      description: `${filtered.length} medições encontradas`,
+                    });
+                  }}
+                  className="w-full bg-[#2f486d] border-[#3d5a7d] text-[#f3eae0] hover:bg-[#3d5a7d] text-xs"
+                >
+                  Filtrar Medições
+                </Button>
+                <p className="text-[10px] text-[#d2c7b8]/60 mt-2">
+                  Dica: Use Shift+Click para selecionar múltiplas medições. Arraste para mover, clique nos cantos para redimensionar.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Measurements */}
           <div className="p-2 sm:p-3">

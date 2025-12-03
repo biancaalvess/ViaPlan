@@ -116,6 +116,7 @@ interface QuickTakeoffViewerProps {
   activeTool: string;
   measurements: TakeoffMeasurement[];
   onAddMeasurement: (measurement: Omit<TakeoffMeasurement, 'id'>) => void;
+  onUpdateMeasurement?: (id: string, updates: Partial<TakeoffMeasurement>) => void;
   scale?: string;
   zoom: number;
   selectedColor?: string;
@@ -136,6 +137,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
   activeTool,
   measurements,
   onAddMeasurement,
+  onUpdateMeasurement,
   scale: _scale,
   zoom,
   selectedColor,
@@ -155,6 +157,13 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     width: number;
     height: number;
   }>({ width: 0, height: 0 });
+  
+  // Estados para ferramenta selecionar
+  const [selectedMeasurements, setSelectedMeasurements] = useState<string[]>([]);
+  const [isMoving, setIsMoving] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [moveStart, setMoveStart] = useState<{ x: number; y: number } | null>(null);
+  const [resizeStart, setResizeStart] = useState<{ x: number; y: number; measurementId: string } | null>(null);
 
   // Estados para zoom e navegação
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -205,7 +214,17 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
 
   // Função para pan (arrastar) com mouse
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Estabilizar imagem quando ferramenta estiver ativa
+    // A ferramenta "select" permite pan (mover visualização)
+    if (activeTool === 'select') {
+      if (e.button === 0) {
+        // Botão esquerdo do mouse - iniciar pan
+        setIsDragging(true);
+        setDragStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+      }
+      return;
+    }
+
+    // Outras ferramentas ativas não permitem pan
     if (activeTool) {
       return;
     }
@@ -218,7 +237,17 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Estabilizar movimento quando ferramenta estiver ativa
+    // A ferramenta "select" permite pan
+    if (activeTool === 'select' && isDragging) {
+      const newOffset = {
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      };
+      setPanOffset(newOffset);
+      return;
+    }
+
+    // Outras ferramentas ativas não permitem pan
     if (activeTool || !isDragging) {
       return;
     }
@@ -383,11 +412,140 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [currentPage, totalPages, handlePageChange, toast, measurements]);
 
+  // Função auxiliar para calcular coordenadas do mouse
+  const getMouseCoordinates = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+
+    const rect = canvas.getBoundingClientRect();
+    const scale = zoom * zoomLevel;
+    
+    let x, y;
+    if (fileType === 'image') {
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      x = (e.clientX - centerX) / scale + pageDimensions.width / 2;
+      y = (e.clientY - centerY) / scale + pageDimensions.height / 2;
+    } else {
+      x = (e.clientX - rect.left) / scale;
+      y = (e.clientY - rect.top) / scale;
+    }
+    
+    return { x, y };
+  };
+
+  // Função para verificar se um ponto está dentro de uma medição
+  const isPointInMeasurement = (point: { x: number; y: number }, measurement: TakeoffMeasurement, tolerance: number = 10) => {
+    if (measurement.coordinates.length < 2) return false;
+    
+    // Verificar se o ponto está próximo de alguma coordenada
+    for (const coord of measurement.coordinates) {
+      const distance = Math.sqrt(
+        Math.pow(point.x - coord.x, 2) + Math.pow(point.y - coord.y, 2)
+      );
+      if (distance <= tolerance / (zoom * zoomLevel)) {
+        return true;
+      }
+    }
+    
+    // Verificar se o ponto está na linha (para medições lineares)
+    for (let i = 0; i < measurement.coordinates.length - 1; i++) {
+      const p1 = measurement.coordinates[i];
+      const p2 = measurement.coordinates[i + 1];
+      const distance = distanceToLineSegment(point, p1, p2);
+      if (distance <= tolerance / (zoom * zoomLevel)) {
+        return true;
+      }
+    }
+    
+    return false;
+  };
+
+  // Função auxiliar para calcular distância de ponto a segmento de linha
+  const distanceToLineSegment = (
+    point: { x: number; y: number },
+    lineStart: { x: number; y: number },
+    lineEnd: { x: number; y: number }
+  ) => {
+    const A = point.x - lineStart.x;
+    const B = point.y - lineStart.y;
+    const C = lineEnd.x - lineStart.x;
+    const D = lineEnd.y - lineStart.y;
+
+    const dot = A * C + B * D;
+    const lenSq = C * C + D * D;
+    let param = -1;
+    if (lenSq !== 0) param = dot / lenSq;
+
+    let xx, yy;
+
+    if (param < 0) {
+      xx = lineStart.x;
+      yy = lineStart.y;
+    } else if (param > 1) {
+      xx = lineEnd.x;
+      yy = lineEnd.y;
+    } else {
+      xx = lineStart.x + param * C;
+      yy = lineStart.y + param * D;
+    }
+
+    const dx = point.x - xx;
+    const dy = point.y - yy;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!activeTool) return;
     
-    // A ferramenta "select" não deve desenhar, apenas selecionar
+    // A ferramenta "select" - permitir seleção de medições, mas não interferir no pan
     if (activeTool === 'select') {
+      // Prevenir que o evento se propague para o container (que faz pan)
+      e.stopPropagation();
+      
+      const coords = getMouseCoordinates(e);
+      if (!coords) return;
+
+      // Verificar se clicou em uma medição existente
+      let clickedMeasurement: TakeoffMeasurement | null = null;
+      for (const measurement of measurements) {
+        if (isPointInMeasurement(coords, measurement)) {
+          clickedMeasurement = measurement;
+          break;
+        }
+      }
+
+      if (clickedMeasurement) {
+        // Se Shift está pressionado, adicionar/remover da seleção
+        if (e.shiftKey) {
+          if (selectedMeasurements.includes(clickedMeasurement.id)) {
+            setSelectedMeasurements(prev => prev.filter(id => id !== clickedMeasurement!.id));
+          } else {
+            setSelectedMeasurements(prev => [...prev, clickedMeasurement!.id]);
+          }
+        } else {
+          // Selecionar apenas esta medição
+          if (!selectedMeasurements.includes(clickedMeasurement.id)) {
+            setSelectedMeasurements([clickedMeasurement.id]);
+          }
+        }
+
+        // Verificar se clicou em um handle de redimensionamento (canto)
+        const isResizeHandle = checkResizeHandle(coords, clickedMeasurement);
+        if (isResizeHandle) {
+          setIsResizing(true);
+          setResizeStart({ x: coords.x, y: coords.y, measurementId: clickedMeasurement.id });
+        } else {
+          // Iniciar movimento da medição
+          setIsMoving(true);
+          setMoveStart(coords);
+        }
+      } else {
+        // Clicou em área vazia - limpar seleção (a menos que Shift esteja pressionado)
+        if (!e.shiftKey) {
+          setSelectedMeasurements([]);
+        }
+      }
       return;
     }
 
@@ -417,13 +575,80 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     setDrawingPoints([{ x, y }]);
   };
 
-  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !activeTool) return;
+  // Verificar se o ponto está em um handle de redimensionamento
+  const checkResizeHandle = (
+    point: { x: number; y: number },
+    measurement: TakeoffMeasurement
+  ): boolean => {
+    if (measurement.coordinates.length === 0) return false;
     
-    // A ferramenta "select" não deve desenhar
+    // Verificar cantos (primeiro e último ponto)
+    const tolerance = 8 / (zoom * zoomLevel);
+    const firstPoint = measurement.coordinates[0];
+    const lastPoint = measurement.coordinates[measurement.coordinates.length - 1];
+    
+    const distToFirst = Math.sqrt(
+      Math.pow(point.x - firstPoint.x, 2) + Math.pow(point.y - firstPoint.y, 2)
+    );
+    const distToLast = Math.sqrt(
+      Math.pow(point.x - lastPoint.x, 2) + Math.pow(point.y - lastPoint.y, 2)
+    );
+    
+    return distToFirst <= tolerance || distToLast <= tolerance;
+  };
+
+  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    // A ferramenta "select" - mover ou redimensionar
     if (activeTool === 'select') {
+      const coords = getMouseCoordinates(e);
+      if (!coords) return;
+
+      if (isMoving && moveStart && selectedMeasurements.length > 0 && onUpdateMeasurement) {
+        // Mover medições selecionadas
+        const deltaX = coords.x - moveStart.x;
+        const deltaY = coords.y - moveStart.y;
+        
+        selectedMeasurements.forEach(id => {
+          const measurement = measurements.find(m => m.id === id);
+          if (measurement) {
+            const newCoordinates = measurement.coordinates.map(coord => ({
+              x: coord.x + deltaX,
+              y: coord.y + deltaY,
+            }));
+            onUpdateMeasurement(id, { coordinates: newCoordinates });
+          }
+        });
+        
+        setMoveStart(coords);
+      } else if (isResizing && resizeStart && onUpdateMeasurement) {
+        // Redimensionar medição
+        const measurement = measurements.find(m => m.id === resizeStart.measurementId);
+        if (measurement && measurement.coordinates.length > 0) {
+          const centerX = measurement.coordinates.reduce((sum, c) => sum + c.x, 0) / measurement.coordinates.length;
+          const centerY = measurement.coordinates.reduce((sum, c) => sum + c.y, 0) / measurement.coordinates.length;
+          
+          const startDist = Math.sqrt(
+            Math.pow(resizeStart.x - centerX, 2) + Math.pow(resizeStart.y - centerY, 2)
+          );
+          const currentDist = Math.sqrt(
+            Math.pow(coords.x - centerX, 2) + Math.pow(coords.y - centerY, 2)
+          );
+          
+          if (startDist > 0) {
+            const scale = currentDist / startDist;
+            const newCoordinates = measurement.coordinates.map(coord => ({
+              x: centerX + (coord.x - centerX) * scale,
+              y: centerY + (coord.y - centerY) * scale,
+            }));
+            onUpdateMeasurement(resizeStart.measurementId, { coordinates: newCoordinates });
+            setResizeStart({ ...resizeStart, x: coords.x, y: coords.y });
+          }
+        }
+      }
       return;
     }
+
+    if (!isDrawing || !activeTool) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -473,18 +698,39 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     // Desenhar medições existentes
     measurements.forEach(measurement => {
       if (measurement.coordinates.length < 2) return;
-      ctx.strokeStyle = measurement.color;
-      ctx.lineWidth = 3;
+      
+      const isSelected = selectedMeasurements.includes(measurement.id);
+      
+      // Desenhar linha da medição
+      ctx.strokeStyle = isSelected ? '#ffff00' : measurement.color;
+      ctx.lineWidth = isSelected ? 4 : 3;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-      ctx.shadowBlur = 2;
+      ctx.shadowColor = isSelected ? 'rgba(255, 255, 0, 0.8)' : 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = isSelected ? 4 : 2;
       ctx.beginPath();
       ctx.moveTo(measurement.coordinates[0].x, measurement.coordinates[0].y);
       for (let i = 1; i < measurement.coordinates.length; i++) {
         ctx.lineTo(measurement.coordinates[i].x, measurement.coordinates[i].y);
       }
       ctx.stroke();
+      
+      // Desenhar handles de seleção (cantos) se estiver selecionada
+      if (isSelected && activeTool === 'select') {
+        ctx.fillStyle = '#ffff00';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        measurement.coordinates.forEach((coord, index) => {
+          // Desenhar apenas no primeiro e último ponto
+          if (index === 0 || index === measurement.coordinates.length - 1) {
+            ctx.beginPath();
+            ctx.arc(coord.x, coord.y, 6 / scale, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+          }
+        });
+      }
+      
       ctx.shadowBlur = 0;
     });
 
@@ -507,17 +753,19 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     }
 
     ctx.restore();
-  }, [measurements, activeTool, zoom, zoomLevel, pageDimensions, selectedColor]);
+  }, [measurements, activeTool, zoom, zoomLevel, pageDimensions, selectedColor, selectedMeasurements]);
 
   const handleCanvasMouseUp = () => {
-    if (!isDrawing || !activeTool) return;
-    
-    // A ferramenta "select" não deve criar medições
+    // A ferramenta "select" - finalizar mover/redimensionar
     if (activeTool === 'select') {
-      setIsDrawing(false);
-      setDrawingPoints([]);
+      setIsMoving(false);
+      setIsResizing(false);
+      setMoveStart(null);
+      setResizeStart(null);
       return;
     }
+
+    if (!isDrawing || !activeTool) return;
 
     console.log('Mouse up, drawing points:', drawingPoints);
     setIsDrawing(false);
@@ -731,12 +979,15 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     measurements.forEach(measurement => {
       if (measurement.coordinates.length < 2) return;
 
-      ctx.strokeStyle = measurement.color;
-      ctx.lineWidth = 3;
+      const isSelected = selectedMeasurements.includes(measurement.id);
+
+      // Desenhar linha da medição
+      ctx.strokeStyle = isSelected ? '#ffff00' : measurement.color;
+      ctx.lineWidth = isSelected ? 4 : 3;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-      ctx.shadowBlur = 2;
+      ctx.shadowColor = isSelected ? 'rgba(255, 255, 0, 0.8)' : 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = isSelected ? 4 : 2;
       ctx.beginPath();
       ctx.moveTo(measurement.coordinates[0].x, measurement.coordinates[0].y);
 
@@ -746,6 +997,23 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
 
       ctx.stroke();
       ctx.shadowBlur = 0;
+
+      // Desenhar handles de seleção (cantos) se estiver selecionada
+      if (isSelected && activeTool === 'select') {
+        ctx.fillStyle = '#ffff00';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2 / scale;
+        // Desenhar apenas no primeiro e último ponto
+        const firstPoint = measurement.coordinates[0];
+        const lastPoint = measurement.coordinates[measurement.coordinates.length - 1];
+        
+        [firstPoint, lastPoint].forEach(coord => {
+          ctx.beginPath();
+          ctx.arc(coord.x, coord.y, 6 / scale, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.stroke();
+        });
+      }
 
       // Draw measurement label with background for visibility
       if (measurement.length) {
@@ -799,7 +1067,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     }
 
     ctx.restore();
-  }, [measurements, drawingPoints, activeTool, zoom, zoomLevel, pageDimensions, selectedColor]);
+  }, [measurements, drawingPoints, activeTool, zoom, zoomLevel, pageDimensions, selectedColor, selectedMeasurements]);
 
   if (!pdfUrl) {
     return (
@@ -926,16 +1194,16 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
                 <canvas
                   ref={canvasRef}
                   className='measurement-canvas absolute'
-                  style={{
-                    width: `${pageDimensions.width * zoom * zoomLevel}px`,
-                    height: `${pageDimensions.height * zoom * zoomLevel}px`,
-                    cursor: activeTool === 'select' ? 'default' : activeTool ? 'crosshair' : 'default',
-                    pointerEvents: activeTool ? 'auto' : 'none',
-                    zIndex: 10,
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                  }}
+                    style={{
+                      width: `${pageDimensions.width * zoom * zoomLevel}px`,
+                      height: `${pageDimensions.height * zoom * zoomLevel}px`,
+                      cursor: activeTool === 'select' ? 'default' : activeTool ? 'crosshair' : 'default',
+                      pointerEvents: activeTool === 'select' ? 'none' : activeTool ? 'auto' : 'none',
+                      zIndex: 10,
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                    }}
                   onMouseDown={handleCanvasMouseDown}
                   onMouseMove={handleCanvasMouseMove}
                   onMouseUp={handleCanvasMouseUp}
@@ -1108,7 +1376,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
                       width: `${pageDimensions.width * zoom * zoomLevel}px`,
                       height: `${pageDimensions.height * zoom * zoomLevel}px`,
                       cursor: activeTool === 'select' ? 'default' : activeTool ? 'crosshair' : 'default',
-                      pointerEvents: activeTool ? 'auto' : 'none',
+                      pointerEvents: activeTool === 'select' ? 'none' : activeTool ? 'auto' : 'none',
                       zIndex: 10,
                     }}
                     onMouseDown={handleCanvasMouseDown}

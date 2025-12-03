@@ -80,6 +80,7 @@ export interface TakeoffMeasurement {
   vaultBackfillCY?: number;
   vaultBackfillType?: string;
   vaultTrafficRated?: boolean;
+  groupId?: string;
 }
 
 export const useMeasurements = () => {
@@ -119,6 +120,111 @@ export const useMeasurements = () => {
     return measurements.reduce((total, m) => total + (m.area || 0), 0);
   }, [measurements]);
 
+  // Funções para a ferramenta selecionar
+  const moveMeasurement = useCallback((id: string, deltaX: number, deltaY: number) => {
+    setMeasurements(prev =>
+      prev.map(m => {
+        if (m.id === id) {
+          return {
+            ...m,
+            coordinates: m.coordinates.map(coord => ({
+              x: coord.x + deltaX,
+              y: coord.y + deltaY,
+            })),
+          };
+        }
+        return m;
+      })
+    );
+  }, []);
+
+  const moveMeasurements = useCallback((ids: string[], deltaX: number, deltaY: number) => {
+    setMeasurements(prev =>
+      prev.map(m => {
+        if (ids.includes(m.id)) {
+          return {
+            ...m,
+            coordinates: m.coordinates.map(coord => ({
+              x: coord.x + deltaX,
+              y: coord.y + deltaY,
+            })),
+          };
+        }
+        return m;
+      })
+    );
+  }, []);
+
+  const resizeMeasurement = useCallback((
+    id: string,
+    scaleX: number,
+    scaleY: number,
+    centerX: number,
+    centerY: number
+  ) => {
+    setMeasurements(prev =>
+      prev.map(m => {
+        if (m.id === id) {
+          return {
+            ...m,
+            coordinates: m.coordinates.map(coord => ({
+              x: centerX + (coord.x - centerX) * scaleX,
+              y: centerY + (coord.y - centerY) * scaleY,
+            })),
+          };
+        }
+        return m;
+      })
+    );
+  }, []);
+
+  const groupMeasurements = useCallback((ids: string[], groupId?: string) => {
+    const newGroupId = groupId || `group-${Date.now()}`;
+    setMeasurements(prev =>
+      prev.map(m => {
+        if (ids.includes(m.id)) {
+          return {
+            ...m,
+            groupId: newGroupId,
+          };
+        }
+        return m;
+      })
+    );
+    return newGroupId;
+  }, []);
+
+  const ungroupMeasurements = useCallback((ids: string[]) => {
+    setMeasurements(prev =>
+      prev.map(m => {
+        if (ids.includes(m.id)) {
+          const { groupId, ...rest } = m;
+          return rest;
+        }
+        return m;
+      })
+    );
+  }, []);
+
+  const filterMeasurements = useCallback((filters: {
+    types?: TakeoffMeasurement['type'][];
+    minLength?: number;
+    maxLength?: number;
+    minArea?: number;
+    maxArea?: number;
+    groupId?: string;
+  }) => {
+    return measurements.filter(m => {
+      if (filters.types && !filters.types.includes(m.type)) return false;
+      if (filters.minLength !== undefined && (m.length || 0) < filters.minLength) return false;
+      if (filters.maxLength !== undefined && (m.length || 0) > filters.maxLength) return false;
+      if (filters.minArea !== undefined && (m.area || 0) < filters.minArea) return false;
+      if (filters.maxArea !== undefined && (m.area || 0) > filters.maxArea) return false;
+      if (filters.groupId !== undefined && (m as any).groupId !== filters.groupId) return false;
+      return true;
+    });
+  }, [measurements]);
+
   return {
     measurements,
     addMeasurement,
@@ -128,5 +234,11 @@ export const useMeasurements = () => {
     getMeasurementsByType,
     getTotalLength,
     getTotalArea,
+    moveMeasurement,
+    moveMeasurements,
+    resizeMeasurement,
+    groupMeasurements,
+    ungroupMeasurements,
+    filterMeasurements,
   };
 };
