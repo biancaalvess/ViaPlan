@@ -16,6 +16,7 @@ import {
   X,
   Trash2,
   ArrowLeft,
+  Minimize2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -56,6 +57,7 @@ const QuickTakeoffPage = () => {
   const [scale, setScale] = useState("1:1000");
   const [zoom, setZoom] = useState(1);
   const [showManualScale, setShowManualScale] = useState(false);
+  const [isManualScaleMinimized, setIsManualScaleMinimized] = useState(false);
   const [manualScaleValue, setManualScaleValue] = useState<number | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>("#ef4444");
 
@@ -752,41 +754,60 @@ const QuickTakeoffPage = () => {
       {/* Manual Scale Calibration Dialog */}
       <Dialog open={showManualScale} onOpenChange={setShowManualScale}>
         <DialogContent className="bg-[#223148] border-[#3d5a7d] text-[#f3eae0] max-w-2xl relative">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowManualScale(false)}
-            className="absolute right-2 top-2 h-6 w-6 p-0 text-[#f3eae0] hover:text-[#f3eae0] hover:bg-[#3d5a7d] rounded-sm"
-          >
-            <X className="h-4 w-4" />
-          </Button>
           <DialogHeader>
-            <DialogTitle className="text-[#f3eae0] pr-8">
-              Calibração de Escala Manual
-            </DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-[#f3eae0]">
+                Calibração de Escala Manual
+              </DialogTitle>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setIsManualScaleMinimized(!isManualScaleMinimized);
+                  }}
+                  className="h-8 w-8 p-0 text-[#f3eae0] hover:text-[#f3eae0] hover:bg-[#3d5a7d] rounded-sm"
+                  title={isManualScaleMinimized ? "Expandir" : "Minimizar"}
+                >
+                  <Minimize2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowManualScale(false)}
+                  className="h-8 w-8 p-0 text-[#f3eae0] hover:text-[#f3eae0] hover:bg-red-600/30 hover:text-red-400 rounded-sm"
+                  title="Fechar"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </DialogHeader>
-          <ScaleCalibration
-            onCalibrate={(scaleValue, unit) => {
-              // scaleValue é unidades reais por pixel (ex: 0.01 m/pixel)
-              // Armazenamos o valor para uso nos cálculos
-              setManualScaleValue(scaleValue);
+          {!isManualScaleMinimized && (
+            <ScaleCalibration
+              onCalibrate={(scaleValue, unit) => {
+                // scaleValue é unidades reais por pixel (ex: 0.01 m/pixel)
+                // Armazenamos o valor para uso nos cálculos
+                setManualScaleValue(scaleValue);
 
-              // Para exibir, calculamos a escala 1:x aproximada
-              // Assumindo que 1 pixel no PDF representa scaleValue unidades reais
-              // Para uma escala 1:1000, 1mm no papel = 1000mm reais = 1m real
-              // Precisamos converter baseado em um tamanho de referência padrão
-              // Por simplicidade, vamos usar um formato descritivo
-              const displayScale = `1:manual (${scaleValue.toFixed(4)} ${unit}/px)`;
-              setScale(displayScale);
-              setShowManualScale(false);
-              toast({
-                title: "Escala Calibrada",
-                description: `Escala manual configurada: ${scaleValue.toFixed(4)} ${unit} por pixel`,
-              });
-            }}
-            currentScale={manualScaleValue || undefined}
-            currentUnit="m"
-          />
+                // Para exibir, calculamos a escala 1:x aproximada
+                // Assumindo que 1 pixel no PDF representa scaleValue unidades reais
+                // Para uma escala 1:1000, 1mm no papel = 1000mm reais = 1m real
+                // Precisamos converter baseado em um tamanho de referência padrão
+                // Por simplicidade, vamos usar um formato descritivo
+                const displayScale = `1:manual (${scaleValue.toFixed(4)} ${unit}/px)`;
+                setScale(displayScale);
+                setShowManualScale(false);
+                setIsManualScaleMinimized(false);
+                toast({
+                  title: "Escala Calibrada",
+                  description: `Escala manual configurada: ${scaleValue.toFixed(4)} ${unit} por pixel`,
+                });
+              }}
+              currentScale={manualScaleValue || undefined}
+              currentUnit="m"
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
