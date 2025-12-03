@@ -671,8 +671,13 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
       y = (e.clientY - rect.top) / scale;
     }
 
+    // Estabilizar a caneta: manter apenas o ponto inicial e o ponto atual (dois pontos)
     setDrawingPoints(prev => {
-      const newPoints = [...prev, { x, y }];
+      if (prev.length === 0) {
+        return [{ x, y }];
+      }
+      // Manter apenas o primeiro ponto e atualizar o segundo com a posição atual
+      const newPoints = [prev[0], { x, y }];
       // Forçar atualização imediata do canvas com os novos pontos
       requestAnimationFrame(() => {
         redrawCanvasWithPoints(newPoints);

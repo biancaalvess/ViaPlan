@@ -691,32 +691,88 @@ const QuickTakeoffPage = () => {
                 no plano.
               </p>
             ) : (
-              <div className="space-y-1.5">
-                {measurements.map((measurement) => (
+              <div className="space-y-1.5 max-h-[400px] overflow-y-auto">
+                {measurements.map((measurement) => {
+                  // Função auxiliar para garantir que valores sejam strings
+                  const safeString = (value: any, fallback: string = ''): string => {
+                    if (value === null || value === undefined) return fallback;
+                    if (typeof value === 'string') return value;
+                    if (typeof value === 'number') return String(value);
+                    if (typeof value === 'object') {
+                      // Se for um objeto, tentar extrair uma propriedade útil ou converter para string
+                      if ('value' in value) return String(value.value);
+                      if ('type' in value) return String(value.type);
+                      return JSON.stringify(value);
+                    }
+                    return String(value);
+                  };
+                  
+                  const safeUnit = (): string => {
+                    if (!measurement.unit) return 'ft';
+                    if (typeof measurement.unit === 'string') return measurement.unit;
+                    if (typeof measurement.unit === 'object' && measurement.unit !== null) {
+                      // Se unit for um objeto, tentar extrair o valor
+                      if ('value' in measurement.unit) return String(measurement.unit.value);
+                      if ('type' in measurement.unit) return String(measurement.unit.type);
+                    }
+                    return String(measurement.unit);
+                  };
+                  
+                  return (
                   <div
                     key={measurement.id}
-                    className="p-1.5 sm:p-2 bg-[#2f486d] rounded-md border border-[#3d5a7d]"
+                    className="p-1.5 sm:p-2 bg-[#2f486d] rounded-md border border-[#3d5a7d] hover:border-[#4a6a8d] transition-colors"
                   >
-                    <div className="flex items-center justify-between gap-1.5">
+                    <div className="flex items-start justify-between gap-1.5">
                       <div className="min-w-0 flex-1">
-                        <p className="text-[11px] sm:text-xs font-medium text-[#f3eae0] truncate">
-                          {measurement.label}
-                        </p>
-                        <p className="text-[10px] text-[#d2c7b8]">
-                          {measurement.type}
-                        </p>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <div
+                            className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: typeof measurement.color === 'string' ? measurement.color : (measurement.color ? String(measurement.color) : '#6b7280') }}
+                          />
+                          <p className="text-[11px] sm:text-xs font-medium text-[#f3eae0] truncate">
+                            {typeof measurement.label === 'string' ? measurement.label : (measurement.label ? String(measurement.label) : 'Medição')}
+                          </p>
+                        </div>
+                        <div className="space-y-0.5">
+                          <p className="text-[10px] text-[#d2c7b8] capitalize">
+                            {typeof measurement.type === 'string' ? measurement.type.replace(/-/g, ' ') : String(measurement.type || '')}
+                          </p>
+                          {measurement.length !== undefined && measurement.length !== null && (
+                            <p className="text-[10px] text-[#f3eae0] font-semibold">
+                              {typeof measurement.length === 'number' ? measurement.length.toFixed(2) : safeString(measurement.length)} {safeUnit()}
+                            </p>
+                          )}
+                          {measurement.area !== undefined && measurement.area !== null && (
+                            <p className="text-[10px] text-[#f3eae0] font-semibold">
+                              Área: {typeof measurement.area === 'number' ? measurement.area.toFixed(2) : safeString(measurement.area)} {safeUnit()}
+                            </p>
+                          )}
+                          {measurement.trenchWidth && measurement.trenchDepth && (
+                            <p className="text-[9px] text-[#d2c7b8]">
+                              {typeof measurement.trenchWidth === 'number' ? measurement.trenchWidth : String(measurement.trenchWidth)}' × {typeof measurement.trenchDepth === 'number' ? measurement.trenchDepth : String(measurement.trenchDepth)}'
+                            </p>
+                          )}
+                          {measurement.spoilVolumeCY !== undefined && measurement.spoilVolumeCY !== null && (
+                            <p className="text-[9px] text-[#d2c7b8]">
+                              Volume: {typeof measurement.spoilVolumeCY === 'number' ? measurement.spoilVolumeCY.toFixed(2) : String(measurement.spoilVolumeCY)} CY
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteMeasurement(measurement.id)}
-                        className="h-5 w-5 p-0 text-[#d2c7b8] hover:text-[#f3eae0] text-sm"
+                        className="h-5 w-5 p-0 text-[#d2c7b8] hover:text-[#f3eae0] hover:bg-[#3d5a7d] text-sm flex-shrink-0"
+                        title="Deletar medição"
                       >
                         ×
                       </Button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
