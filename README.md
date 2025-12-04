@@ -1,14 +1,14 @@
 # ViaPlan
 
-**Sua ferramenta para medição e análise de projetos de infraestrutura**
+**Sua ferramenta para medição e análise de projetos de engenharia civil predial**
 
 ![ViaPlan Landing Page](./public/readme.png)
 
-Sistema completo de levantamento de quantitativos (Takeoff) para engenharia civil, infraestrutura, redes e topografia. Permite realizar medições precisas diretamente sobre plantas digitais em PDF, com cálculos automáticos de áreas, volumes e distâncias.
+Sistema completo de levantamento de quantitativos (Takeoff) para engenharia civil predial. Permite realizar medições precisas diretamente sobre plantas digitais em PDF, com cálculos automáticos de áreas, volumes e distâncias em projetos residenciais e comerciais.
 
 ## Para que funciona?
 
-Ferramenta para medições técnicas em projetos de infraestrutura. Ideal para medir trincheiras, perfurações, condutos, áreas e volumes em plantas técnicas.
+Ferramenta para medições técnicas em projetos de construção predial (casas e edifícios). Ideal para medir paredes, áreas, vãos, lajes, fundações, estruturas, acabamentos e coberturas em plantas arquitetônicas.
 
 ## Como funciona?
 
@@ -40,7 +40,7 @@ O sistema combina um Canvas Interativo de alta performance com ferramentas de de
 - Visualizador de PDF integrado com navegação fluida
 - Sistema de escalas métricas padrão (1:1000, 1:500, 1:200, 1:100)
 - Calibração manual de escala com medição de dois pontos
-- Ferramentas especializadas de medição (valas, condutos, perfurações, etc.)
+- Ferramentas especializadas de medição para construção predial (paredes, áreas, vãos, lajes, fundações, estruturas, acabamentos, coberturas)
 - Cálculos automáticos de área, volume e distância
 - Interface responsiva e moderna com suporte a modo escuro
 - Sistema de exportação (CSV, JSON)
@@ -72,38 +72,44 @@ O sistema combina um Canvas Interativo de alta performance com ferramentas de de
 
 ### 2. Ferramentas de Medição
 
-O sistema oferece ferramentas especializadas acessíveis via barra lateral:
+O sistema oferece ferramentas especializadas para engenharia civil predial, acessíveis via barra lateral:
 
 #### Ferramentas Disponíveis
 
-- **Seleção (Pointer)**: Selecionar, mover ou deletar medições existentes
-- **Vala (Trench)**: Medição de área com cálculo automático de volume de escavação
-- **Perfuração Direcional (Bore Shot)**: Traçados de perfuração horizontal
-- **Conduto (Conduit)**: Medição de tubulações e condutos
-- **Hidroescavação (Hydro Excavation)**: Valas, buracos e potholing
-- **Câmara/Buraco de Mão (Vault)**: Contagem de caixas de passagem e poços
-- **Área (Yardage)**: Cálculo de áreas para terraplenagem
-- **Anotações (Notes)**: Camada de texto para observações
+- **Selecionar**: Mover, redimensionar, apagar, agrupar e filtrar medições. Não mede, apenas edita.
+- **Planta / Layout**: Medições de paredes, eixos, espessuras, alinhamentos e perímetros internos.
+- **Paredes**: Traçado, altura, espessura, área de alvenaria e estimativa de blocos/argamassa (parâmetros configuráveis).
+- **Área**: Polígonos, área útil/bruta, lajes e ambientes. Exportação em tabela.
+- **Vãos e Aberturas**: Portas, janelas e vãos. Dimensões, material e quantidade.
+- **Lajes / Pisos**: Medições de superfícies com espessura. Volume de concreto ou área de revestimento.
+- **Fundação**: Sapatas, blocos e vigas baldrame. Dimensões, volume e parâmetros estruturais mínimos.
+- **Estrutura (Concreto)**: Vigas, pilares e lajes. Cálculo por seção e volume.
+- **Acabamentos**: Pisos, revestimentos e pintura. Área, perdas configuráveis e tipo de material.
+- **Cobertura**: Áreas inclinadas, telhados e platibandas. Inclinação, área real e área projetada.
+- **Nota**: Texto livre, metadados e localização.
 
 ### 3. Configuração Paramétrica
 
 Cada ferramenta possui modais de configuração avançada:
 
-- **Valas**: Largura, profundidade, remoção de asfalto/concreto, backfill
-- **Condutos**: Diâmetros, quantidade, material
-- **Perfurações**: Configuração de traçados e condutos
-- **Hidroescavação**: Tipo (vala/buraco/potholing), dimensões, profundidade
-- **Câmaras**: Dimensões, volumes de escavação, remoção e restauração
-- **Áreas**: Configuração de terraplenagem e volumes
+- **Paredes**: Altura, espessura, tipo de alvenaria, estimativa de blocos e argamassa
+- **Área**: Configuração de área útil/bruta, altura opcional para cálculo de volume
+- **Vãos e Aberturas**: Dimensões, material, quantidade e tipo (porta/janela)
+- **Lajes / Pisos**: Espessura, tipo de concreto, área de revestimento
+- **Fundação**: Dimensões, volume, parâmetros estruturais mínimos
+- **Estrutura**: Seções transversais, volume de concreto, armaduras
+- **Acabamentos**: Tipo de material, perdas configuráveis, área de cobertura
+- **Cobertura**: Inclinação, área real, área projetada, tipo de telhado
 
 ### 4. Gestão de Dados e Workflow
 
 #### Cálculos Automáticos
 O sistema gera um resumo em tempo real contendo:
-- Comprimento total (m/ft)
-- Área total
-- Volume total (para escavações)
+- Comprimento total (m)
+- Área total (m²)
+- Volume total (m³)
 - Resumo por tipo de medição
+- Estimativas de materiais (blocos, argamassa, concreto, etc.)
 
 #### Histórico de Ações
 - Sistema robusto de **Undo/Redo** (Desfazer/Refazer)
@@ -278,13 +284,16 @@ npm run test:e2e     # Executa testes end-to-end
 ### 3. Realizar Medições
 
 1. Selecione uma ferramenta na barra lateral:
-   - **Vala**: Para escavações
-   - **Perfuração**: Para traçados horizontais
-   - **Conduto**: Para tubulações
-   - **Hidroescavação**: Para valas/buracos
-   - **Câmara**: Para caixas de passagem
-   - **Área**: Para terraplenagem
-   - **Anotação**: Para observações
+   - **Planta / Layout**: Para medições gerais de layout
+   - **Paredes**: Para medir paredes e alvenaria
+   - **Área**: Para calcular áreas de ambientes e lajes
+   - **Vãos e Aberturas**: Para portas e janelas
+   - **Lajes / Pisos**: Para lajes e pisos com espessura
+   - **Fundação**: Para sapatas, blocos e vigas baldrame
+   - **Estrutura**: Para vigas, pilares e lajes estruturais
+   - **Acabamentos**: Para pisos, revestimentos e pintura
+   - **Cobertura**: Para telhados e áreas inclinadas
+   - **Nota**: Para observações e anotações
 
 2. Configure os parâmetros no modal que aparecer
 
@@ -437,6 +446,11 @@ ViaPlan/
 
 ### Melhorias Recentes
 
+- **Refatoração completa do painel de ferramentas**: Migração de ferramentas de infraestrutura para engenharia civil predial
+- **Nova lista de ferramentas**: Planta/Layout, Paredes, Área, Vãos e Aberturas, Lajes/Pisos, Fundação, Estrutura, Acabamentos, Cobertura
+- **Unidades métricas**: Todas as medições agora usam metros (m), metros quadrados (m²) e metros cúbicos (m³)
+- **Caneta de medição estabilizada**: Sistema de dois pontos (início e fim) para medições mais precisas
+- **Exibição melhorada de medições**: Cada medida exibe detalhes completos (comprimento, área, volume, dimensões)
 - Sistema de escalas métricas padrão (1:1000, 1:500, 1:200, 1:100)
 - Calibração manual de escala com medição de dois pontos
 - Interface de erro compacta e funcional
@@ -451,7 +465,7 @@ Este projeto está sob a licença especificada no arquivo `LICENSE`.
 
 ## Autores
 
-Desenvolvido para engenharia civil, infraestrutura, redes e topografia.
+Desenvolvido para engenharia civil predial, construção de casas e edifícios.
 
 ---
 
