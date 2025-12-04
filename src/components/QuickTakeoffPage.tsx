@@ -19,7 +19,7 @@ import {
   Home,
   Building2,
   Hammer,
-  Roofing,
+  Triangle,
   Paintbrush,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -369,7 +369,7 @@ const QuickTakeoffPage = () => {
       id: "roofing",
       name: "Cobertura",
       description: "Áreas inclinadas, telhados e platibandas. Inclinação, área real e área projetada.",
-      icon: Roofing,
+      icon: Triangle,
       needsConfig: true,
       config: areaConfig, // Reutilizar config temporariamente
     },
