@@ -41,6 +41,7 @@ interface TakeoffMeasurement {
     | 'trench' // Mantido para compatibilidade
     | 'conduit' // Mantido para compatibilidade
     | 'vault' // Mantido para compatibilidade
+    | 'yardage' // Mantido para compatibilidade
     | 'bore-shot' // Mantido para compatibilidade
     | 'hydro-excavation-trench' // Mantido para compatibilidade
     | 'hydro-excavation-hole' // Mantido para compatibilidade
