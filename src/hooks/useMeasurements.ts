@@ -91,6 +91,7 @@ export interface TakeoffMeasurement {
   vaultBackfillType?: string;
   vaultTrafficRated?: boolean;
   groupId?: string;
+  pitSize?: string;
 }
 
 export const useMeasurements = () => {

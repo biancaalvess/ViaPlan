@@ -5,6 +5,7 @@ import 'react-pdf/dist/Page/TextLayer.css';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, AlertCircle, RefreshCw, FileX } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { TakeoffMeasurement } from '@/hooks/useMeasurements';
 
 // Configure PDF.js worker - usando CDN do unpkg com versão dinâmica
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -24,94 +25,7 @@ const PDF_OPTIONS = {
   standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
 };
 
-interface TakeoffMeasurement {
-  id: string;
-  type:
-    | 'select'
-    | 'layout'
-    | 'walls'
-    | 'area'
-    | 'openings'
-    | 'slabs'
-    | 'foundation'
-    | 'structure'
-    | 'finishes'
-    | 'roofing'
-    | 'note'
-    | 'trench' // Mantido para compatibilidade
-    | 'conduit' // Mantido para compatibilidade
-    | 'vault' // Mantido para compatibilidade
-    | 'yardage' // Mantido para compatibilidade
-    | 'bore-shot' // Mantido para compatibilidade
-    | 'hydro-excavation-trench' // Mantido para compatibilidade
-    | 'hydro-excavation-hole' // Mantido para compatibilidade
-    | 'hydro-excavation-pothole'; // Mantido para compatibilidade
-  label: string;
-  coordinates: { x: number; y: number }[];
-  length?: number;
-  area?: number;
-  notes?: string;
-  unit: string;
-  color: string;
-  trenchWidth?: number;
-  trenchDepth?: number;
-  spoilVolumeCY?: number;
-  asphaltRemoval?: {
-    width: number;
-    thickness: number;
-    volumeCY: number;
-  };
-  concreteRemoval?: {
-    width: number;
-    thickness: number;
-    volumeCY: number;
-  };
-  backfill?: {
-    type: string;
-    customType?: string;
-    width: number;
-    depth: number;
-    volumeCY: number;
-  };
-  conduits?: Array<{
-    sizeIn: string;
-    count: number;
-    material: string;
-  }>;
-  hydroExcavationType?: 'trench' | 'hole' | 'potholing';
-  hydroHoleShape?: 'rectangle' | 'circle';
-  hydroHoleDimensions?: {
-    length?: number;
-    width?: number;
-    diameter?: number;
-    depth: number;
-    depthUnit: 'inches' | 'feet';
-  };
-  hydroPotholingData?: {
-    surfaceType: 'asphalt' | 'concrete' | 'dirt';
-    averageDepth: number;
-    depthUnit: 'inches' | 'feet';
-    includeRestoration: boolean;
-  };
-  vaultDimensions?: {
-    length: number;
-    width: number;
-    depth: number;
-  };
-  holeSize?: {
-    length: number;
-    width: number;
-    depth: number;
-  };
-  vaultSpoilVolumeCY?: number;
-  vaultAsphaltRemovalCY?: number;
-  vaultConcreteRemovalCY?: number;
-  vaultAsphaltRestorationCY?: number;
-  vaultConcreteRestorationCY?: number;
-  vaultBackfillCY?: number;
-  vaultBackfillType?: string;
-  vaultTrafficRated?: boolean;
-}
+// TakeoffMeasurement agora é importado de useMeasurements
 
 interface QuickTakeoffViewerProps {
   pdfUrl: string;
