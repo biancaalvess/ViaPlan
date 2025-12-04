@@ -569,6 +569,7 @@ const QuickTakeoffPage = () => {
               measurements={measurements}
               onAddMeasurement={handleAddMeasurement}
               onUpdateMeasurement={updateMeasurement}
+              areaConfig={areaConfig}
               scale={scale}
               zoom={zoom}
               selectedColor={selectedColor}
@@ -758,8 +759,9 @@ const QuickTakeoffPage = () => {
                     }
                     if (typeof measurement.unit === 'object' && measurement.unit !== null) {
                       // Se unit for um objeto, tentar extrair o valor
-                      if ('value' in measurement.unit) return String(measurement.unit.value);
-                      if ('type' in measurement.unit) return String(measurement.unit.type);
+                      const unitObj = measurement.unit as any;
+                      if ('value' in unitObj) return String(unitObj.value);
+                      if ('type' in unitObj) return String(unitObj.type);
                     }
                     return String(measurement.unit);
                   };

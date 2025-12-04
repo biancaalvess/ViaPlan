@@ -131,6 +131,7 @@ interface QuickTakeoffViewerProps {
   conduitConfig: any;
   hydroExcavationConfig: any;
   vaultConfig: any;
+  areaConfig?: any;
 }
 
 const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
@@ -152,6 +153,7 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
   conduitConfig,
   hydroExcavationConfig,
   vaultConfig,
+  areaConfig,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);

@@ -3,22 +3,8 @@ import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 
-// Import the interface from QuickTakeoffPage instead
-interface TakeoffMeasurement {
-  id: string;
-  type:
-    | 'trench'
-    | 'conduit'
-    | 'vault'
-    | 'yardage'
-    | 'note'
-    | 'bore-shot'
-    | 'bore-pit'
-    | 'concrete'
-    | 'asphalt'
-    | 'hydro-excavation-trench'
-    | 'hydro-excavation-hole'
-    | 'hydro-excavation-pothole';
+// Import the interface from useMeasurements
+import { TakeoffMeasurement } from '@/hooks/useMeasurements';
   label: string;
   coordinates: { x: number; y: number }[];
   length?: number;
