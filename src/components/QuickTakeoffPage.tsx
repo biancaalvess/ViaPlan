@@ -15,7 +15,6 @@ import {
   Minimize2,
   Minus,
   Box,
-  Square,
   Home,
   Building2,
   Hammer,
