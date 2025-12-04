@@ -27,18 +27,24 @@ const PDF_OPTIONS = {
 interface TakeoffMeasurement {
   id: string;
   type:
-    | 'trench'
-    | 'conduit'
-    | 'vault'
-    | 'yardage'
+    | 'select'
+    | 'layout'
+    | 'walls'
+    | 'area'
+    | 'openings'
+    | 'slabs'
+    | 'foundation'
+    | 'structure'
+    | 'finishes'
+    | 'roofing'
     | 'note'
-    | 'bore-shot'
-    | 'bore-pit'
-    | 'concrete'
-    | 'asphalt'
-    | 'hydro-excavation-trench'
-    | 'hydro-excavation-hole'
-    | 'hydro-excavation-pothole';
+    | 'trench' // Mantido para compatibilidade
+    | 'conduit' // Mantido para compatibilidade
+    | 'vault' // Mantido para compatibilidade
+    | 'bore-shot' // Mantido para compatibilidade
+    | 'hydro-excavation-trench' // Mantido para compatibilidade
+    | 'hydro-excavation-hole' // Mantido para compatibilidade
+    | 'hydro-excavation-pothole'; // Mantido para compatibilidade
   label: string;
   coordinates: { x: number; y: number }[];
   length?: number;
@@ -814,6 +820,70 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
     };
 
     switch (activeTool) {
+      case 'layout':
+        return {
+          ...baseMeasurement,
+          type: 'layout',
+        };
+
+      case 'walls':
+        return {
+          ...baseMeasurement,
+          type: 'walls',
+          trenchWidth: trenchConfig?.width || 0.14, // Espessura padrão de parede em metros
+          trenchDepth: trenchConfig?.depth || 2.7, // Altura padrão em metros
+          spoilVolumeCY: calculateSpoilVolume(
+            length,
+            trenchConfig?.width || 0.14,
+            trenchConfig?.depth || 2.7
+          ),
+        };
+
+      case 'openings':
+        return {
+          ...baseMeasurement,
+          type: 'openings',
+          conduits: conduitConfig?.conduits || [],
+        };
+
+      case 'slabs':
+        return {
+          ...baseMeasurement,
+          type: 'slabs',
+          vaultDimensions: vaultConfig?.dimensions,
+          vaultSpoilVolumeCY: vaultConfig?.spoilVolumeCY,
+        };
+
+      case 'foundation':
+        return {
+          ...baseMeasurement,
+          type: 'foundation',
+          conduits: boreShotConfig?.conduits || [],
+        };
+
+      case 'structure':
+        return {
+          ...baseMeasurement,
+          type: 'structure',
+          hydroExcavationType: hydroExcavationConfig?.type || 'trench',
+          hydroHoleDimensions: hydroExcavationConfig?.holeDimensions,
+        };
+
+      case 'finishes':
+        return {
+          ...baseMeasurement,
+          type: 'finishes',
+          area: length * (areaConfig?.height || 1),
+        };
+
+      case 'roofing':
+        return {
+          ...baseMeasurement,
+          type: 'roofing',
+          area: length * (areaConfig?.height || 1),
+        };
+
+      // Mantido para compatibilidade
       case 'trench':
         return {
           ...baseMeasurement,
@@ -911,13 +981,24 @@ const QuickTakeoffViewer: React.FC<QuickTakeoffViewerProps> = ({
 
   const getToolColor = (tool: string): string => {
     const colors: Record<string, string> = {
+      select: '#6366f1',
+      layout: '#3b82f6',
+      walls: '#ef4444',
+      area: '#10b981',
+      openings: '#f59e0b',
+      slabs: '#8b5cf6',
+      foundation: '#92400e',
+      structure: '#1e40af',
+      finishes: '#ec4899',
+      roofing: '#059669',
+      note: '#6b7280',
+      // Mantido para compatibilidade
       trench: '#ef4444',
       'bore-shot': '#3b82f6',
       conduit: '#10b981',
       'hydro-excavation': '#f59e0b',
       vault: '#8b5cf6',
       yardage: '#ec4899',
-      note: '#6b7280',
     };
     return colors[tool] || '#6b7280';
   };

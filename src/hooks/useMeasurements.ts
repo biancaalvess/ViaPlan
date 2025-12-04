@@ -3,18 +3,28 @@ import { useState, useCallback } from 'react';
 export interface TakeoffMeasurement {
   id: string;
   type:
-    | 'trench'
-    | 'conduit'
-    | 'vault'
-    | 'yardage'
+    | 'select'
+    | 'layout'
+    | 'walls'
+    | 'area'
+    | 'openings'
+    | 'slabs'
+    | 'foundation'
+    | 'structure'
+    | 'finishes'
+    | 'roofing'
     | 'note'
-    | 'bore-shot'
-    | 'bore-pit'
-    | 'concrete'
-    | 'asphalt'
-    | 'hydro-excavation-trench'
-    | 'hydro-excavation-hole'
-    | 'hydro-excavation-pothole';
+    | 'trench' // Mantido para compatibilidade
+    | 'conduit' // Mantido para compatibilidade
+    | 'vault' // Mantido para compatibilidade
+    | 'yardage' // Mantido para compatibilidade
+    | 'bore-shot' // Mantido para compatibilidade
+    | 'bore-pit' // Mantido para compatibilidade
+    | 'concrete' // Mantido para compatibilidade
+    | 'asphalt' // Mantido para compatibilidade
+    | 'hydro-excavation-trench' // Mantido para compatibilidade
+    | 'hydro-excavation-hole' // Mantido para compatibilidade
+    | 'hydro-excavation-pothole'; // Mantido para compatibilidade
   label: string;
   coordinates: { x: number; y: number }[];
   length?: number;

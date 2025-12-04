@@ -7,16 +7,20 @@ import {
   Download,
   MousePointer2,
   Square,
-  Drill,
-  Droplet,
-  Gauge,
-  CheckSquare,
   Layers,
   FileText,
   X,
   Trash2,
   ArrowLeft,
   Minimize2,
+  Ruler,
+  Wall,
+  DoorOpen,
+  Home,
+  Building2,
+  Hammer,
+  Roofing,
+  Paintbrush,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -126,12 +130,16 @@ const QuickTakeoffPage = () => {
   // Atualizar cor padrão quando a ferramenta mudar
   useEffect(() => {
     const defaultColors: Record<string, string> = {
-      trench: "#ef4444",
-      "bore-shot": "#3b82f6",
-      conduit: "#10b981",
-      "hydro-excavation": "#f59e0b",
-      vault: "#8b5cf6",
-      yardage: "#ec4899",
+      select: "#6366f1",
+      layout: "#3b82f6",
+      walls: "#ef4444",
+      area: "#10b981",
+      openings: "#f59e0b",
+      slabs: "#8b5cf6",
+      foundation: "#92400e",
+      structure: "#1e40af",
+      finishes: "#ec4899",
+      roofing: "#059669",
       note: "#6b7280",
     };
     if (activeTool && defaultColors[activeTool]) {
@@ -172,27 +180,35 @@ const QuickTakeoffPage = () => {
   };
 
   const handleToolSelectWithConfig = (tool: string) => {
-    if (tool === "trench" && !trenchConfig) {
+    if (tool === "walls" && !trenchConfig) {
       setShowTrenchConfig(true);
       return;
     }
-    if (tool === "bore-shot" && !boreShotConfig) {
-      setShowBoreShotConfig(true);
-      return;
-    }
-    if (tool === "conduit" && !conduitConfig) {
+    if (tool === "openings" && !conduitConfig) {
       setShowConduitConfig(true);
       return;
     }
-    if (tool === "hydro-excavation" && !hydroExcavationConfig) {
-      setShowHydroExcavationConfig(true);
-      return;
-    }
-    if (tool === "vault" && !vaultConfig) {
+    if (tool === "slabs" && !vaultConfig) {
       setShowVaultConfig(true);
       return;
     }
+    if (tool === "foundation" && !boreShotConfig) {
+      setShowBoreShotConfig(true);
+      return;
+    }
+    if (tool === "structure" && !hydroExcavationConfig) {
+      setShowHydroExcavationConfig(true);
+      return;
+    }
     if (tool === "area" && !areaConfig) {
+      setShowAreaConfig(true);
+      return;
+    }
+    if (tool === "finishes" && !areaConfig) {
+      setShowAreaConfig(true);
+      return;
+    }
+    if (tool === "roofing" && !areaConfig) {
       setShowAreaConfig(true);
       return;
     }
@@ -287,52 +303,75 @@ const QuickTakeoffPage = () => {
       needsConfig: false,
     },
     {
-      id: "trench",
-      name: "Trincheira Aberta",
-      description: "Traçado, largura, profundidade e volume de escavação.",
-      icon: Square,
-      needsConfig: true,
-      config: trenchConfig,
+      id: "layout",
+      name: "Planta / Layout",
+      description: "Medições de paredes, eixos, espessuras, alinhamentos e perímetros internos.",
+      icon: Ruler,
+      needsConfig: false,
     },
     {
-      id: "bore-shot",
-      name: "Perfuração Direcional",
-      description: "Traçado, raio mínimo, ângulos e profundidade mínima.",
-      icon: Drill,
+      id: "walls",
+      name: "Paredes",
+      description: "Traçado, altura, espessura, área de alvenaria e estimativa de blocos/argamassa (parâmetros configuráveis).",
+      icon: Wall,
       needsConfig: true,
-      config: boreShotConfig,
-    },
-    {
-      id: "hydro-excavation",
-      name: "Hidroescavação",
-      description: "Traçado, seção nominal, profundidade e volume removido.",
-      icon: Droplet,
-      needsConfig: true,
-      config: hydroExcavationConfig,
-    },
-    {
-      id: "conduit",
-      name: "Conduto",
-      description: "Trajeto, material, classe/SDR, diâmetro e espessura.",
-      icon: Gauge,
-      needsConfig: true,
-      config: conduitConfig,
-    },
-    {
-      id: "vault",
-      name: "Câmara/Buraco de Mão",
-      description: "Tipo, dimensões, profundidade, material e quantidade.",
-      icon: CheckSquare,
-      needsConfig: true,
-      config: vaultConfig,
+      config: trenchConfig, // Reutilizar config temporariamente
     },
     {
       id: "area",
       name: "Área",
-      description: "Polígono, área total, perímetro e volume opcional.",
+      description: "Polígonos, área útil/bruta, lajes e ambientes. Exportação em tabela.",
       icon: Layers,
       needsConfig: true,
       config: areaConfig,
+    },
+    {
+      id: "openings",
+      name: "Vãos e Aberturas",
+      description: "Portas, janelas e vãos. Dimensões, material e quantidade.",
+      icon: DoorOpen,
+      needsConfig: true,
+      config: conduitConfig, // Reutilizar config temporariamente
+    },
+    {
+      id: "slabs",
+      name: "Lajes / Pisos",
+      description: "Medições de superfícies com espessura. Volume de concreto ou área de revestimento.",
+      icon: Square,
+      needsConfig: true,
+      config: vaultConfig, // Reutilizar config temporariamente
+    },
+    {
+      id: "foundation",
+      name: "Fundação",
+      description: "Sapatas, blocos e vigas baldrame. Dimensões, volume e parâmetros estruturais mínimos.",
+      icon: Building2,
+      needsConfig: true,
+      config: boreShotConfig, // Reutilizar config temporariamente
+    },
+    {
+      id: "structure",
+      name: "Estrutura (Concreto)",
+      description: "Vigas, pilares e lajes. Cálculo por seção e volume.",
+      icon: Hammer,
+      needsConfig: true,
+      config: hydroExcavationConfig, // Reutilizar config temporariamente
+    },
+    {
+      id: "finishes",
+      name: "Acabamentos",
+      description: "Pisos, revestimentos e pintura. Área, perdas configuráveis e tipo de material.",
+      icon: Paintbrush,
+      needsConfig: true,
+      config: areaConfig, // Reutilizar config temporariamente
+    },
+    {
+      id: "roofing",
+      name: "Cobertura",
+      description: "Áreas inclinadas, telhados e platibandas. Inclinação, área real e área projetada.",
+      icon: Roofing,
+      needsConfig: true,
+      config: areaConfig, // Reutilizar config temporariamente
     },
     {
       id: "note",
@@ -344,17 +383,17 @@ const QuickTakeoffPage = () => {
   ];
 
   const activeConfigs: Array<{ name: string; onClear: () => void }> = [
-    trenchConfig && { name: "Trincheira Aberta", onClear: clearTrenchConfig },
+    trenchConfig && { name: "Paredes", onClear: clearTrenchConfig },
+    conduitConfig && { name: "Vãos e Aberturas", onClear: clearConduitConfig },
+    vaultConfig && { name: "Lajes / Pisos", onClear: clearVaultConfig },
     boreShotConfig && {
-      name: "Perfuração Direcional",
+      name: "Fundação",
       onClear: clearBoreShotConfig,
     },
-    conduitConfig && { name: "Conduto", onClear: clearConduitConfig },
     hydroExcavationConfig && {
-      name: "Hidroescavação",
+      name: "Estrutura (Concreto)",
       onClear: clearHydroExcavationConfig,
     },
-    vaultConfig && { name: "Câmara/Buraco de Mão", onClear: clearVaultConfig },
     areaConfig && { name: "Área", onClear: clearAreaConfig },
   ].filter((config): config is { name: string; onClear: () => void } =>
     Boolean(config)
